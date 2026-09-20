@@ -1,0 +1,55 @@
+/* The ring. Every fill in the drawing is a theme token set inline; this
+   file owns the breathing and nothing else. */
+
+.ring {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  /* Square, so height is what decides it. A touch taller than a screenshot
+     because it has nothing beside it in the column. */
+  max-height: calc(var(--shot-h) * 1.1);
+  filter: drop-shadow(0 22px 52px rgb(0 0 0 / 40%));
+}
+
+/* An agent's halo. Opacity only — the glow must not resize, because a
+   circle that grows and shrinks reads as a button being pressed. Each node
+   sets its own animation-delay inline, so no two are ever in step and the
+   ring never blinks as one object. */
+.ring__glow {
+  opacity: 0.14;
+  animation: ring-breathe 4.7s var(--ease-out) infinite;
+}
+
+@keyframes ring-breathe {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.34;
+  }
+}
+
+/* Venue projectors turn a soft halo into a grey smear and crush the drop
+   shadow into a band. Both go; the mesh and the lights are what matter and
+   they are drawn in the lifted ramp already. */
+:root[data-contrast='high'] .ring {
+  filter: none;
+}
+:root[data-contrast='high'] .ring__glow {
+  display: none;
+}
+
+/* Someone who has asked their machine to stop moving things has asked this
+   too. The mesh, the agents and the lights' resting state all still draw —
+   the diagram is complete standing still, it just stops narrating. */
+@media (prefers-reduced-motion: reduce) {
+  .ring__glow {
+    animation: none;
+    opacity: 0.22;
+  }
+  .ring__light {
+    display: none;
+  }
+}

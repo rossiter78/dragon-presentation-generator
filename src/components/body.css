@@ -1,0 +1,275 @@
+.body {
+  display: grid;
+  gap: clamp(1.25rem, 3vh, 2.25rem);
+}
+
+/* Words left, shots right. Only sections that carry figures take this form,
+   and those sections also set `wide` on the section so the screenshots get
+   the width they need to be readable from the back of the room. */
+.body[data-split] {
+  grid-template-columns: minmax(14rem, 22rem) minmax(0, 1fr);
+  gap: clamp(1.25rem, 2.2vw, 2.75rem);
+  align-items: center;
+}
+
+.body__words {
+  display: grid;
+  gap: clamp(1rem, 2.4vh, 2rem);
+  align-content: start;
+}
+
+.body__title {
+  font-size: var(--step-title);
+  max-width: 20ch;
+}
+.body[data-split] .body__title {
+  font-size: clamp(1.45rem, 1rem + 1.6vw, 2.5rem);
+  max-width: 18ch;
+}
+
+.body__lines {
+  display: grid;
+  gap: clamp(0.5rem, 1.4vh, 1rem);
+  align-content: start;
+}
+
+/* The wordmark on a closing card. Sized in ch so it tracks the text column
+   it sits under rather than the viewport, and given real space above it so
+   it reads as a sign-off rather than another bullet. */
+.body__logo {
+  display: block;
+  width: min(100%, 26ch);
+  height: auto;
+  margin-top: clamp(1.25rem, 3.5vh, 2.75rem);
+}
+
+/* --- one fragment ------------------------------------------------------- */
+
+.line {
+  position: relative;
+  margin: 0;
+  padding-left: 1.5rem;
+  display: grid;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 0.85rem + 0.95vw, 1.85rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+  max-width: 38ch;
+  text-wrap: balance;
+}
+.body[data-split] .line {
+  font-size: clamp(0.95rem, 0.8rem + 0.55vw, 1.35rem);
+  max-width: 26ch;
+}
+
+/* A plain fragment gets a hairline dash. The one that carries the section's
+   claim gets the red bar — fill use, so the 3.17:1 measurement is moot, and
+   it is the only red on the slide. */
+.line__mark {
+  position: absolute;
+  left: 0;
+  top: 0.58em;
+  width: 10px;
+  height: 2px;
+  background: var(--line-strong);
+}
+.line[data-lead] {
+  color: var(--text);
+  font-size: clamp(1.2rem, 0.9rem + 1.25vw, 2.2rem);
+}
+.body[data-split] .line[data-lead] {
+  font-size: clamp(1.05rem, 0.85rem + 0.8vw, 1.6rem);
+}
+.line[data-lead] .line__mark {
+  top: 0.14em;
+  bottom: 0.14em;
+  width: 4px;
+  height: auto;
+  border-radius: 2px;
+  background: var(--accent-fill);
+  box-shadow: 0 0 22px var(--accent-glow);
+}
+
+/* Sub-fragments. Two or three words, one step down, never a second list. */
+.line__sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  font-size: 0.6em;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.line__sub span::before {
+  content: '—';
+  margin-right: 0.45rem;
+  color: var(--line-strong);
+}
+
+/* --- screenshots -------------------------------------------------------- */
+
+.body__figures {
+  /* How tall a figure may be before `scale` has its say. Each figure below
+     derives its own --shot-h from this, so an item can shrink without the
+     row around it moving. */
+  --shot-h-base: 66vh;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: clamp(0.75rem, 1.6vw, 1.75rem);
+  /* Stretch, not centre: two shots of different heights would otherwise
+     float at different levels and their captions would not line up. */
+  align-items: stretch;
+  justify-items: center;
+}
+/* Each <Beat> wrapper is a grid cell; without this the held (invisible)
+   second shot collapses and the first one jumps sideways when it arrives. */
+.body__figures > .beat {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  justify-items: center;
+}
+
+/* --- how big one figure is ----------------------------------------------
+   `scale` in talk.ts, 1–100, arrives as --shot-scale on the <figure>: a
+   multiplier, 1 by default. It is applied HERE rather than at each image,
+   because deriving --shot-h per figure means the height caps in ring.css,
+   phone.css and deploy.css — all written as multiples of --shot-h — follow
+   a scaled drawing without knowing the property exists. */
+.shot,
+.graphic {
+  --shot-scale: 1;
+  --shot-h: calc(var(--shot-h-base) * var(--shot-scale));
+}
+
+.shot {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+}
+
+.shot__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--shot-h);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 45%);
+}
+
+/* An authored size, rather than the default ceiling.
+   --------------------------------------------------------------------------
+   Without `scale` an image is capped and otherwise left alone, which is
+   right for a screenshot: it arrives at whatever size it was captured and
+   never grows past 66vh. But a ceiling is no way to SET a size. Lower it
+   under an image that is already smaller than the cap and nothing happens
+   at all — the case that prompted this: the QR on the contact card is a
+   45-unit SVG that never came near 66vh, so no cap you could name moved it.
+
+   So a figure that names a scale is sized rather than capped: `height` is
+   100% of what the cell allows at scale 100, and proportionally less below
+   that. `max-width: 100%` stays as the guard — a wide figure asked to be
+   tall shrinks to fit the column instead of overhanging it, and the
+   replaced-element sizing rules keep the aspect ratio while it does. */
+.shot[data-scaled] .shot__img {
+  height: var(--shot-h);
+  max-height: none;
+}
+
+/* The placeholder has no intrinsic size to grow from — it is a drawn box —
+   so it is the one figure where scale still works on the ceiling. */
+.shot[data-scaled] .shot__pending {
+  max-width: calc(34rem * var(--shot-scale));
+}
+
+.shot__caption,
+.graphic__caption {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(0.76rem, 0.7rem + 0.32vw, 1.02rem);
+  line-height: 1.3;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 34ch;
+  /* Two lines' worth, always: captions of different lengths still sit on
+     the same baseline across the row. */
+  min-height: 2.6em;
+  text-wrap: balance;
+}
+
+/* An authored diagram — PhoneHome and whatever follows it. Same cell, same
+   caption, same beat as a screenshot; no frame, because the drawing brings
+   its own edges and a border around a phone would read as a second device. */
+.graphic {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+}
+.graphic__art {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  width: calc(100% * var(--shot-scale));
+  height: 100%;
+}
+
+/* A shot that has not been taken yet. Loud on purpose — a missing image
+   should be impossible to miss in rehearsal rather than discovered live. */
+.shot__pending {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 34rem;
+  aspect-ratio: 4 / 3;
+  max-height: var(--shot-h);
+  padding: 1rem;
+  text-align: center;
+  border: 2px dashed var(--accent-400);
+  border-radius: var(--radius);
+  background: rgb(192 34 46 / 6%);
+}
+.shot__pending code {
+  font-size: clamp(0.8rem, 0.72rem + 0.4vw, 1.05rem);
+  color: var(--accent-300);
+}
+.shot__pending span {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Below this the split stops being a comparison and starts being a squeeze:
+   stack instead. Rehearsal on a laptop still works; the projector always
+   gets the two-column form. */
+@media (max-width: 980px) {
+  .body[data-split] {
+    grid-template-columns: 1fr;
+  }
+  .body__figures {
+    --shot-h-base: 34vh;
+    grid-auto-flow: row;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,118 @@
+/* ==========================================================================
+   Logic Data Solutions — dark inversion.  A SECOND, REAL EXAMPLE.
+   --------------------------------------------------------------------------
+   Not the default. It is here to show that a theme is a token set and
+   nothing else: this file and dark.css define the same names, import the
+   same base, and no component knows which one is loaded. Switch by changing
+   one import in main.tsx.
+
+   It is also a worked example of the awkward case, which is the common one.
+   Derived from a brand specified as a LIGHT theme (Corporate Red #C0222E,
+   Dark Charcoal #3D4F5C, Titanium #878681, Light Grey #DCDCDC, Off-White
+   #F0EEEE). Two rules govern the inversion:
+
+   1. Backgrounds are Dark Charcoal pushed into shadow, never neutral black.
+      This is what makes it read as *the brand* in the dark rather than as
+      generic dark mode.
+
+   2. Corporate Red #C0222E measures 3.17:1 on --ink. That fails WCAG AA for
+      body text AND for large text. So the brand red is a FILL ONLY colour
+      here — solid chips, diagram node fills, the decorative stripe. Any red
+      that carries meaning as text or as a line uses the lifted ramp below.
+
+      This is the case dark.css only talks about. Here it is real: the brand
+      colour cannot be used for text at all, and pretending otherwise would
+      have put unreadable headings on a projector.
+
+   Measured contrast on --ink (#0C1116):
+      #C0222E brand red     3.17:1   fill only, never text
+      #E04552 accent-400    4.64:1   AA large text, UI borders, lines
+      #FF6B73 accent-300    6.87:1   AA body text, inline emphasis
+      #F0EEEE text         16.41:1   primary text
+      #A8A7A2 text-secondary 7.87:1  comfortable secondary text
+      #878681 titanium      5.20:1   AA secondary text
+      #7D95A6 text-muted    6.07:1   muted labels on dark
+      #3D4F5C charcoal      2.23:1   borders and surfaces only
+   ========================================================================== */
+
+@import './base.css';
+
+
+:root {
+  /* --- brand, unmodified ------------------------------------------------ */
+  --lds-red: #c0222e;
+  --lds-charcoal: #3d4f5c;
+  --lds-titanium: #878681;
+  --lds-light-grey: #dcdcdc;
+  --lds-off-white: #f0eeee;
+
+  /* --- dark surfaces, derived from charcoal ----------------------------- */
+  --ink: #0c1116;
+  --surface: #141c24;
+  --surface-2: #1b2732;
+  --surface-3: #22303d;
+
+  /* --- red ramp --------------------------------------------------------- */
+  --accent-fill: var(--lds-red); /* fills only */
+  --accent-400: #e04552; /* AA large / UI */
+  --accent-300: #ff6b73; /* AA body */
+  --accent-glow: rgb(224 69 82 / 22%);
+
+  /* --- text ------------------------------------------------------------- */
+  --text: var(--lds-off-white);
+  --text-secondary: #a8a7a2;
+  --text-muted: #7d95a6;
+
+  /* --- lines ------------------------------------------------------------ */
+  --line: #253442;
+  --line-strong: #37505f;
+
+  /* --- type ------------------------------------------------------------- */
+  --font-display: 'Montserrat', 'Segoe UI Variable Display', 'Segoe UI',
+    system-ui, -apple-system, sans-serif;
+  --font-body: 'Source Sans 3', 'Source Sans Pro', 'Segoe UI', system-ui,
+    -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, 'SFMono-Regular',
+    'Consolas', monospace;
+
+  /* Fluid display scale. Sized for a 1920x1080 projector at the top end and
+     still legible on a laptop while you rehearse. */
+  --step-hero: clamp(2.75rem, 1.2rem + 6vw, 7rem);
+  --step-title: clamp(1.9rem, 1rem + 3.2vw, 3.6rem);
+  --step-lead: clamp(1.05rem, 0.85rem + 0.8vw, 1.6rem);
+  --step-body: clamp(0.95rem, 0.85rem + 0.35vw, 1.2rem);
+  --step-small: clamp(0.78rem, 0.72rem + 0.22vw, 0.95rem);
+
+  --gutter: clamp(1.5rem, 5vw, 6rem);
+  --radius: 10px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Projector rescue mode — append ?contrast=high to the URL.
+   Venue projectors crush blacks and wash out mid-tones. This lifts the
+   background off true black, strengthens every line, and kills the ambient
+   glows that turn to mud on bad optics.
+   -------------------------------------------------------------------------- */
+:root[data-contrast='high'] {
+  --ink: #16202a;
+  --surface: #1f2c38;
+  --surface-2: #283746;
+  --surface-3: #324454;
+  --text-secondary: #c9c8c4;
+  --text-muted: #9fb4c2;
+  --line: #3d5668;
+  --line-strong: #567084;
+  --accent-400: #ff5f6c;
+  --accent-300: #ff8a90;
+  --accent-glow: rgb(255 95 108 / 10%);
+}
+
+/* --------------------------------------------------------------------------
+   Fonts are loaded in main.tsx from @fontsource, which vendors the woff2
+   files through the bundle. Nothing to drop in by hand, and no request to
+   fonts.googleapis.com at load time.
+
+   The weights imported there must match the stacks above:
+     Montserrat      600, 700

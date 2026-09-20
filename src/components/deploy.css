@@ -1,0 +1,96 @@
+/* The deploy path. Type only — every shape in the drawing takes its fill
+   from a theme token inline, so projector rescue mode carries it. */
+
+.deploy {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  /* A little taller than a screenshot is allowed to be. The machine grew a
+     row for every container and the column has the height to spare, so the
+     ceiling is here to stop the drawing overrunning the section — not to
+     size it. Width is what actually decides it at projector ratio. */
+  max-height: calc(var(--shot-h) * 1.14);
+  filter: drop-shadow(0 22px 52px rgb(0 0 0 / 45%));
+}
+
+/* A stage's name. Display face, the same weight as a layer card's. */
+.deploy__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  fill: var(--text);
+  text-anchor: middle;
+}
+
+.deploy__sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  fill: var(--text-secondary);
+  text-anchor: middle;
+}
+/* A git ref is a string you would type, so it is set like one. */
+.deploy__sub--mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* The machine's name, a size up: it is the subject of the slide. */
+.deploy__host {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  fill: var(--text);
+}
+
+/* What a tier of the nesting is called — VM, then the runtime inside it. */
+.deploy__tier {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  fill: var(--text-muted);
+}
+.deploy__tier--runtime {
+  fill: var(--accent-300);
+}
+
+/* The step on an arrow. Red-300 — this one IS read, so it takes the 6.87:1
+   rung rather than the fill colour. */
+.deploy__stepLabel {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--accent-300);
+  text-anchor: middle;
+}
+
+.deploy__containerName {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  fill: var(--text);
+}
+.deploy__containerRole {
+  font-family: var(--font-body);
+  font-size: 12px;
+  fill: var(--text-secondary);
+  text-anchor: end;
+}
+
+/* Small print. The model number, and the three things deploy.sh does —
+   true, useful to one person in the room, and priced accordingly. */
+.deploy__fine {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  fill: var(--text-muted);
+}
+
+/* Venue projectors lose a dashed hairline on a near-black fill before they
+   lose anything else. */
+:root[data-contrast='high'] .deploy {
+  filter: none;
+}

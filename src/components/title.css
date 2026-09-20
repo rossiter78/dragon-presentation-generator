@@ -1,0 +1,40 @@
+.title {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.title__h {
+  font-size: var(--step-hero);
+  letter-spacing: -0.035em;
+  max-width: 16ch;
+}
+
+/* The subtitle carries the red mark — brand red as a FILL, which is the one
+   place it is allowed at this contrast (#C0222E measures 3.17:1 on --ink). */
+.title__sub {
+  position: relative;
+  margin: 0;
+  padding-left: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.15rem, 0.8rem + 1.5vw, 2.3rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+  max-width: 26ch;
+  text-wrap: balance;
+}
+.title__sub[data-lead] {
+  color: var(--text);
+}
+
+.title__mark {
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--accent-fill);
+  box-shadow: 0 0 22px var(--accent-glow);
+}

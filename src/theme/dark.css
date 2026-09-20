@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Default dark theme — neutral.
+   --------------------------------------------------------------------------
+   THE DEFAULT. Swap it by changing one import in main.tsx; see lds-dark.css
+   for a second, real-brand example.
+
+   A THEME IS A TOKEN SET, NOT A CODE CHANGE. Every colour, face and size the
+   deck uses is named below. No component picks a colour of its own, and if
+   you find yourself adding one to a component, add a token here instead.
+
+   -----------------------------------------------------------------------
+   HOW TO BUILD YOUR OWN, and the part worth copying: MEASURE THE CONTRAST.
+
+   A brand palette is almost always specified for a LIGHT background, and a
+   brand's signature colour is almost always too dark to read on a dark one.
+   The honest fix is not to use it anyway at low contrast — it is to keep the
+   brand colour for FILLS, where contrast rules do not apply, and derive a
+   lifted ramp for anything that has to be read.
+
+   That gives three rungs, and it is the shape of every theme here:
+
+     <accent>-fill   the real brand colour. Solid chips, diagram node fills,
+                     the decorative stripe. NEVER text, never a thin line.
+     <accent>-400    lifted to ≥ 4.5:1. Large text, UI borders, meaningful
+                     lines — the arrows in a diagram, the lead bar.
+     <accent>-300    lifted further, ≥ 6:1. Body text, inline emphasis.
+
+   Measured contrast on --ink (#0D1117), sRGB, WCAG 2.1:
+
+      #2F6FED accent-fill     4.16:1   fill only — AA large, but not body
+      #5B8DEF accent-400      5.86:1   AA body, AA large, UI borders, lines
+      #8FB2F5 accent-300      8.88:1   comfortable body text, emphasis
+      #E8EAED text           15.70:1   primary text
+      #9AA4B2 text-secondary  7.50:1   secondary text
+      #7D8899 text-muted      5.28:1   muted labels
+      #37424F line-strong     1.85:1   lines and borders only, never text
+      #2A3440 surface-3       1.50:1   surfaces only, never text
+
+   This accent is kinder than most: at 4.16:1 it clears AA for large text,
+   so it would survive as a heading. It is still confined to fills, because
+   a theme whose rules change per element is a theme nobody follows — and
+   because the next brand colour someone drops in here will not be so
+   forgiving. Keep the discipline and the swap stays a one-file change.
+
+   RE-MEASURE IF YOU CHANGE A VALUE. A contrast table that was true once and
+   is not checked again is worse than no table, because it is believed. The
+   numbers above were computed, not eyeballed.
+   ========================================================================== */
+
+@import './base.css';
+
+:root {
+  /* --- the accent, unmodified ------------------------------------------- */
+  --brand: #2f6fed;
+
+  /* --- dark surfaces ----------------------------------------------------
+     Not neutral black. Each step is the ink lifted toward the accent's hue
+     by a few percent, which is what stops a dark theme reading as "generic
+     dark mode" and makes it read as a considered surface. */
+  --ink: #0d1117;
+  --surface: #151b24;
+  --surface-2: #1d2530;
+  --surface-3: #2a3440;
+
+  /* --- accent ramp — see the table above -------------------------------- */
+  --accent-fill: var(--brand); /* fills only */
+  --accent-400: #5b8def; /* AA body and large, UI, meaningful lines */
+  --accent-300: #8fb2f5; /* comfortable body, inline emphasis */
+  --accent-glow: rgb(91 141 239 / 22%);
+
+  /* --- text ------------------------------------------------------------- */
+  --text: #e8eaed;
+  --text-secondary: #9aa4b2;
+  --text-muted: #7d8899;
+
+  /* --- lines ------------------------------------------------------------ */
+  --line: #232d39;
+  --line-strong: #37424f;
+
+  /* --- type -------------------------------------------------------------
+     Self-hosted through @fontsource — see main.tsx. Change these and change
+     the imports there to match, or you will ship a fallback and not notice
+     until the projector. */
+  --font-display: 'Montserrat', 'Segoe UI Variable Display', 'Segoe UI',
+    system-ui, -apple-system, sans-serif;
+  --font-body: 'Source Sans 3', 'Source Sans Pro', 'Segoe UI', system-ui,
+    -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, 'SFMono-Regular',
+    'Consolas', monospace;
+
+  /* Fluid display scale. Sized for a 1920x1080 projector at the top end and
+     still legible on a laptop while you rehearse. */
+  --step-hero: clamp(2.75rem, 1.2rem + 6vw, 7rem);
+  --step-title: clamp(1.9rem, 1rem + 3.2vw, 3.6rem);
+  --step-lead: clamp(1.05rem, 0.85rem + 0.8vw, 1.6rem);
+  --step-body: clamp(0.95rem, 0.85rem + 0.35vw, 1.2rem);
+  --step-small: clamp(0.78rem, 0.72rem + 0.22vw, 0.95rem);
+
+  --gutter: clamp(1.5rem, 5vw, 6rem);
+  --radius: 10px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Projector rescue mode — append ?contrast=high to the URL.
+
+   Venue projectors crush blacks and wash out mid-tones. This lifts the
+   background off true black, strengthens every line, and kills the ambient
+   glows that turn to mud on bad optics. It survives a reload, which is what
+   you want when you discover the projector is bad two minutes before you
+   start. Every theme should define one.
+   -------------------------------------------------------------------------- */
+:root[data-contrast='high'] {
+  --ink: #18202b;
+  --surface: #222b38;
+  --surface-2: #2c3644;
+  --surface-3: #384454;
+  --text-secondary: #c3cad4;
+  --text-muted: #a0aab8;
+  --line: #3e4a5a;
+  --line-strong: #566276;
+  --accent-400: #7aa5f7;
+  --accent-300: #a8c4f9;
+  --accent-glow: rgb(122 165 247 / 10%);
+}

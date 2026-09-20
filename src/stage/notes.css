@@ -1,0 +1,199 @@
+/* Presenter window. Plain, dense, high contrast — this is a working surface,
+   not a designed one. It is on your laptop, not the projector. */
+
+.notes {
+  min-height: 100dvh;
+  display: grid;
+  align-content: start;
+  gap: 1.1rem;
+  padding: 1.4rem 1.6rem 2rem;
+  background: #0c1116;
+}
+
+.notes__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.notes__eyebrow {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-300);
+}
+
+.notes__title {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.notes__timer {
+  text-align: right;
+  display: grid;
+  gap: 0.1rem;
+}
+.notes__clock {
+  font-family: var(--font-mono);
+  font-size: 2.2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.notes__timer[data-over] .notes__clock {
+  color: var(--accent-300);
+}
+.notes__budget {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.notes__progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.notes__progressFill {
+  display: block;
+  height: 100%;
+  background: var(--line-strong);
+  transition: width 0.5s linear;
+}
+.notes__progressFill[data-over] {
+  background: var(--accent-fill);
+}
+
+.notes__label {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.notes__now {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--accent-400);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: rgb(192 34 46 / 8%);
+}
+.notes__cue {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.notes__next {
+  padding: 0.7rem 1rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+}
+.notes__cueNext {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.notes__body ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+.notes__body li {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.notes__body li::marker {
+  color: var(--accent-400);
+}
+
+.notes__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+.notes__foot button {
+  all: unset;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text-secondary);
+}
+.notes__foot button:hover {
+  color: var(--text);
+}
+.notes__primary {
+  background: var(--accent-fill) !important;
+  border-color: var(--accent-fill) !important;
+  color: #fff !important;
+}
+.notes__hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* Key map for the active section, so the number-key bindings never have to
+   be memorised. The currently expanded one is highlighted. */
+.notes__keys ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.notes__keys li {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+}
+.notes__keys li[data-on] {
+  border-color: var(--accent-400);
+  color: var(--text);
+  background: rgb(192 34 46 / 10%);
+}
+
+.notes__replay {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* The live-demo banner. Presenter window only — the audience never sees a
+   "demo" badge, so skipping one on the night costs nothing on screen. */
+.notes__demo {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent-400);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: rgb(192 34 46 / 12%);
+}
+.notes__demo p:last-child {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text);
+}

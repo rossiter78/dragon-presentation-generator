@@ -1,0 +1,189 @@
+.cake {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.cake__title {
+  font-size: var(--step-title);
+  max-width: 18ch;
+}
+
+.cake__stack {
+  display: grid;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.cake__row {
+  display: grid;
+  gap: 0.75rem;
+}
+.cake__row--clients,
+.cake__row--surfaces {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* --- a layer card ------------------------------------------------------- */
+
+/* No cursor, no hover state, no focus ring: this is not interactive with a
+   pointer, and pretending otherwise invites the audience to wonder why you
+   are not clicking it. */
+.layer {
+  box-sizing: border-box;
+  position: relative;
+  display: grid;
+  align-content: start; /* a card that grows must not re-centre its siblings */
+  gap: 0.3rem;
+  padding: 0.95rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.28s var(--ease-out),
+    background 0.28s var(--ease-out),
+    box-shadow 0.28s var(--ease-out);
+}
+
+/* Expanded by its number key. Brightening the one and dimming the rest is
+   what carries the room's eye — they cannot see your cursor. */
+.layer[data-open] {
+  border-color: var(--accent-400);
+  background: var(--surface-2);
+  box-shadow: 0 16px 44px rgb(0 0 0 / 40%);
+}
+/* Note: opacity for [data-dimmed] is animated in LayerCake.tsx, not set
+   here — motion's inline style would override a rule at this specificity. */
+
+.layer[data-role='logic'] {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+/* The floor of the stack. Quieter than the logic layer above it: it is the
+   one box in the diagram nobody argues about. */
+.layer[data-role='data'] {
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  border-style: solid;
+  opacity: 0.92;
+}
+.layer[data-role='client'] {
+  border-style: dashed;
+}
+.layer[data-peer] {
+  border-color: var(--accent-400);
+  border-style: solid;
+}
+
+.layer__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* The key that expands this card. */
+.layer__key {
+  flex: none;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.layer[data-open] .layer__key {
+  border-color: var(--accent-400);
+  color: var(--accent-300);
+}
+
+.layer__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 0.85rem + 0.45vw, 1.3rem);
+  letter-spacing: -0.01em;
+}
+
+.layer__shape {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-300);
+}
+
+.layer__detail {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.layer__more {
+  display: block;
+  overflow: hidden;
+}
+.layer__moreInner {
+  display: grid;
+  gap: 0.3rem;
+  padding-top: 0.7rem;
+  margin-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}
+.layer__bullet {
+  position: relative;
+  padding-left: 0.95rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.layer__bullet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--accent-fill);
+}
+
+/* --- the peer bracket --------------------------------------------------- */
+
+.cake__peer {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+  padding: 0.15rem 0 0.35rem;
+}
+
+.cake__bracket {
+  width: min(100%, 60ch);
+  height: 10px;
+  border: 1px solid var(--accent-400);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  opacity: 0.75;
+}
+
+.cake__peerText {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(0.95rem, 0.85rem + 0.6vw, 1.35rem);
+  color: var(--text);
+  max-width: 44ch;
+  text-wrap: balance;
+}
+
+
+@media (max-width: 760px) {
+  .cake__row--clients,
+  .cake__row--surfaces {
+    grid-template-columns: 1fr;
+  }
+}

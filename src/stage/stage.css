@@ -1,0 +1,375 @@
+/* ==========================================================================
+   Stage chrome — the scroller, the snap sections, the rail, the frame.
+   ========================================================================== */
+
+.scroller {
+  height: 100dvh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  /* Mandatory snap while presenting: every advance lands square, never
+     halfway between two sections. Read mode releases it so the same page
+     behaves like an ordinary document for someone you send the link to. */
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+:root[data-mode='read'] .scroller {
+  scroll-snap-type: none;
+  scrollbar-width: thin;
+}
+
+.section {
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: grid;
+  align-content: center;
+  padding: clamp(3rem, 8vh, 7rem) var(--gutter);
+  position: relative;
+}
+
+/* Section-edge hairline — brand red, fill use only, so contrast is moot. */
+.section + .section::before {
+  content: '';
+  position: absolute;
+  inset-inline: var(--gutter);
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-fill) 0 4rem,
+    var(--line) 4rem 100%
+  );
+  opacity: 0.55;
+}
+
+.section__inner {
+  width: min(1180px, 100%);
+  margin-inline: auto;
+}
+/* Sections carrying screenshots. A phone conversation shrunk into a
+   measure-wide column is unreadable past the third row of the room, so
+   these get more width — and shallower top and bottom padding, because
+   every pixel of section height is a pixel of screenshot. */
+.section[data-wide] .section__inner {
+  width: min(1560px, 100%);
+}
+.section[data-wide] {
+  padding-block: clamp(1.5rem, 4vh, 3.5rem);
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-small);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-300);
+  margin: 0 0 1.25rem;
+}
+
+/* Shared concept chips. Used wherever a sentence was cut down to three
+   fragments — the audience reads three short things at a glance and cannot
+   read a paragraph at all while you are talking over it. */
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.chips li {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(0.78rem, 0.72rem + 0.25vw, 0.98rem);
+  color: var(--text-secondary);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+}
+.chips li::marker {
+  content: '';
+}
+
+/* --- progress rail ------------------------------------------------------ */
+
+.rail {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.75rem);
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  /* Sized for a full-length deck: thirty-odd sections still has to fit
+     between the top and bottom of a 1080-tall projector. */
+  gap: clamp(0.5rem, 1.4vh, 0.9rem);
+  z-index: 20;
+}
+
+.rail__item {
+  all: unset;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  color: var(--text-muted);
+}
+
+.rail__label {
+  font-size: 0.72rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  translate: 6px 0;
+  transition: all 0.28s var(--ease-out);
+  white-space: nowrap;
+}
+.rail__item:hover .rail__label,
+.rail__item:focus-visible .rail__label {
+  opacity: 1;
+  translate: 0 0;
+}
+.rail__item[data-active] .rail__label {
+  color: var(--text);
+}
+
+.rail__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  transition: all 0.28s var(--ease-out);
+}
+.rail__item[data-done] .rail__dot {
+  background: var(--line-strong);
+}
+.rail__item[data-active] .rail__dot {
+  background: var(--accent-fill);
+  border-color: var(--accent-400);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.rail__beats {
+  position: absolute;
+  right: -0.1rem;
+  translate: 0 1.35rem;
+  display: flex;
+  gap: 3px;
+}
+.rail__tick {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.rail__tick[data-on] {
+  background: var(--accent-400);
+}
+
+/* --- frame -------------------------------------------------------------- */
+
+.chrome {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.chrome--brand {
+  left: var(--gutter);
+  bottom: 1.5rem;
+}
+.chrome--tools {
+  right: var(--gutter);
+  bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.chrome__logo {
+  height: 26px;
+  width: auto;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+.chrome__logo:hover {
+  opacity: 1;
+}
+
+.chip {
+  all: unset;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(20 28 36 / 70%);
+  backdrop-filter: blur(6px);
+  transition: all 0.22s var(--ease-out);
+}
+.chip:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+/* `all: unset` leaves the chip inline, which will not centre an icon —
+   these carry a glyph rather than a word, so they centre explicitly. */
+.chip--ghost {
+  width: 1.5rem;
+  padding-inline: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The export runs for about a minute. A disabled chip that looks identical
+   to an enabled one invites a second click and a second browser. */
+.chip:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+.chip[data-working] {
+  border-color: var(--accent-400);
+  color: var(--accent-300);
+}
+
+.chip__icon {
+  display: block;
+  width: 0.85rem;
+  height: 0.65rem;
+}
+
+/* The menu behind the hamburger: settings first, then the key legend.
+   Anchored to the tools cluster and opening upwards, because it lives in
+   the bottom-right corner of a projected image. */
+.menu {
+  position: absolute;
+  bottom: 2.6rem;
+  right: 0;
+  width: 17rem;
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 0.9rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 45%);
+}
+
+.menu__keys {
+  margin: 0;
+  padding: 0.9rem 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.menu__setting {
+  display: grid;
+  gap: 0.35rem;
+}
+.menu__settingHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.menu__settingHead label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.menu__reset {
+  all: unset;
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: var(--accent-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.menu__reset:hover {
+  color: var(--accent-400);
+}
+
+/* Styled explicitly rather than left to the platform: the default control
+   is a light-mode widget and reads as a scratch on a dark projected slide. */
+.menu__range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  margin: 0.3rem 0;
+  border-radius: 999px;
+  background: var(--line-strong);
+  cursor: pointer;
+}
+.menu__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-fill);
+}
+.menu__range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-fill);
+}
+.menu__range:focus-visible {
+  outline: 2px solid var(--accent-400);
+  outline-offset: 4px;
+}
+
+.menu__scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.menu__value {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+kbd {
+  display: inline-block;
+  min-width: 1.5rem;
+  text-align: center;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--text);
+  font-size: 0.72rem;
+}
+
+/* Hide the rail and frame while printing / exporting to PDF. */
+@media print {
+  .rail,
+  .chrome {
+    display: none;
+  }
+}

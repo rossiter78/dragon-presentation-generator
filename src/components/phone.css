@@ -1,0 +1,80 @@
+/* The home-screen graphic. Everything here is theme tokens — the drawing
+   has no colours of its own, so projector rescue mode (?contrast=high)
+   lifts it with the rest of the deck. */
+
+.phone {
+  /* Tile tints. Charcoal surfaces a step apart, not a colour per app: a
+     rainbow of icons on a dark slide pulls every eye away from the one
+     tile that matters. */
+  --app-1: #19232d;
+  --app-2: #1f2c37;
+  --app-3: #243341;
+  --app-4: #1c2731;
+  --app-glyph: var(--text-muted);
+
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  /* Sized off the same custom property the screenshots use, so the phone
+     and a shot on the neighbouring slide read at the same scale. */
+  max-height: calc(var(--shot-h) * 1.2);
+  /* The drop shadow the screenshots get from box-shadow. A phone is not a
+     framed screenshot, so it takes the shadow and not the border. */
+  filter: drop-shadow(0 26px 60px rgb(0 0 0 / 55%));
+  overflow: hidden;
+}
+
+.phone__time {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  fill: var(--text);
+}
+
+.phone__label {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--text-muted);
+  text-anchor: middle;
+}
+/* The one app that is the point of the slide. Lifted off the others by
+   weight and by the red-300 rung — the readable one, because this label is
+   read. */
+.phone__label--target {
+  fill: var(--accent-300);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.phone__targetGlow {
+  filter: blur(7px);
+}
+
+/* The drawn stand-in when no icon asset was supplied — one letter on brand
+   red. It sits on a red FILL, so it is the one place in the deck where text
+   over brand red is correct: --text on #C0222E measures well above AA, and
+   it is the red-as-background case the theme's contrast table allows. */
+.phone__targetInitial {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  fill: var(--text);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* Venue projectors crush the wallpaper bloom and the tile tints into one
+   flat block. Pull the tiles apart and drop the glow, same as the rest of
+   the deck does under ?contrast=high. */
+:root[data-contrast='high'] .phone {
+  --app-1: #26333f;
+  --app-2: #2e3d4a;
+  --app-3: #374857;
+  --app-4: #223039;
+  --app-glyph: #9fb3c2;
+}
+:root[data-contrast='high'] .phone__targetGlow {
+  display: none;
+}

@@ -1,0 +1,276 @@
+.chat {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.chat__title {
+  font-size: var(--step-title);
+  margin: 0;
+}
+
+.chat__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  align-items: stretch;
+}
+
+/* --- the divider that does the arguing ---------------------------------- */
+
+.chat__spine {
+  position: relative;
+  width: 1px;
+}
+
+.chat__spineLine {
+  position: absolute;
+  inset-block: 2rem;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--line-strong) 18%,
+    var(--line-strong) 82%,
+    transparent
+  );
+}
+
+/* Absolutely positioned, so they never take part in the grid's layout and
+   never push a thread around when they appear. */
+.chat__seam {
+  position: absolute;
+  left: 50%;
+  translate: -50% -50%;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+}
+.chat__seam[data-on] {
+  opacity: 1;
+}
+.chat__seam--top {
+  top: 0;
+}
+.chat__seam--bottom {
+  top: 100%;
+  color: var(--accent-300);
+  border-color: var(--accent-400);
+}
+
+/* --- a thread ----------------------------------------------------------- */
+
+.thread {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+}
+.thread[data-live] {
+  border-color: var(--line-strong);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 35%);
+}
+
+.thread__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.thread__avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--accent-fill);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.thread__id {
+  display: grid;
+  line-height: 1.2;
+}
+.thread__id strong {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+}
+.thread__id small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+
+.thread__scope {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  border: 1px dashed var(--line-strong);
+  border-radius: 4px;
+  padding: 0.15rem 0.45rem;
+}
+
+.thread__body {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  padding: 1.1rem 1rem 1.3rem;
+  min-height: clamp(11rem, 26vh, 16rem);
+}
+
+/* --- bubbles ------------------------------------------------------------ */
+
+.bubble {
+  max-width: 85%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  display: grid;
+  gap: 0.2rem;
+}
+.bubble[data-side='out'] {
+  justify-self: end;
+  background: var(--surface-3);
+  border-bottom-right-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+.bubble[data-side='in'] {
+  justify-self: start;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+}
+.bubble[data-muted] {
+  background: transparent;
+  border-style: dashed;
+}
+
+.thread__outcome {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.thread__detail {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.thread__dots {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0.15rem 0;
+}
+.thread__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: dot 1.2s infinite ease-in-out;
+}
+.thread__dots i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.thread__dots i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+@keyframes dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* --- the tool call: the moment the argument is won ---------------------- */
+
+.thread__tool {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  background: rgb(192 34 46 / 12%);
+  border: 1px solid var(--accent-400);
+}
+.thread__toolDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-fill);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.thread__tool code {
+  font-size: 0.78rem;
+  color: var(--accent-300);
+}
+.thread__toolArgs {
+  color: var(--text-muted) !important;
+  font-size: 0.72rem !important;
+}
+
+/* --- punchline ---------------------------------------------------------- */
+
+.chat__close {
+  display: grid;
+  gap: 0.8rem;
+  border-left: 4px solid var(--accent-fill);
+  padding-left: 1.1rem;
+}
+
+.chat__punchline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 0.9rem + 1.8vw, 2.3rem);
+  letter-spacing: -0.02em;
+}
+
+/* Below ~820px the two threads stack, which kills the side-by-side
+   comparison — so the divider becomes a horizontal rule instead. Rehearsal
+   on a laptop still works; the projector always gets the two-column form. */
+@media (max-width: 820px) {
+  .chat__grid {
+    grid-template-columns: 1fr;
+  }
+  .chat__spine {
+    width: auto;
+    height: 3rem;
+  }
+  .chat__spineLine {
+    inset: 50% 0 auto;
+    width: 100%;
+    height: 1px;
+    background: var(--line-strong);
+  }
+}

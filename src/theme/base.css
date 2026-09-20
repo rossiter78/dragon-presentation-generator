@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Base — shared by every theme.
+   --------------------------------------------------------------------------
+   ENGINE FILE. No colours and no fonts are chosen here: every value below is
+   a token, and a theme is the file that defines them. That is what makes a
+   theme a token set rather than a code change.
+
+   A theme imports this and then declares the tokens. See dark.css.
+
+   Fonts are loaded in main.tsx from @fontsource, which vendors the woff2
+   files through the bundle. Nothing to drop in by hand, and no request to
+   fonts.googleapis.com at load time. The weights imported there must match
+   the stacks a theme declares.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--step-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}
+
+::selection {
+  background: var(--accent-glow);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-300);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
