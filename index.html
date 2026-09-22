@@ -1,10 +1,20 @@
 <!doctype html>
-<html lang="en" data-contrast="normal">
+<!-- data-theme is a PLACEHOLDER, like the title below: the real one is set
+     from talk.config.ts before first paint. It is here because the theme
+     tokens are scoped to this attribute, so a document without one has no
+     colours at all — this keeps the deck styled for the frame before the
+     bundle runs, and if scripting never arrives at all. -->
+<html lang="en" data-contrast="normal" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- PLACEHOLDERS. Both are replaced at startup from src/deck/talk.config.ts
+         (TALK.favicon, TALK.title) — this file is engine, and the talk's name
+         does not live here. They are set at all so the tab has something to
+         show for the one frame before the bundle runs. Editing them per talk
+         is the scavenger hunt talk.config.ts exists to end. -->
     <link rel="icon" href="./brand/favicon.svg" />
-    <title>Dragon Presentation Generator</title>
+    <title>Presentation</title>
   </head>
   <body>
     <div id="root"></div>

@@ -25,10 +25,13 @@ import '@fontsource/source-sans-3/latin-600.css'
 import '@fontsource/jetbrains-mono/latin-400.css'
 import '@fontsource/jetbrains-mono/latin-500.css'
 
-/* The theme. One import, one swap — see src/theme/dark.css for what a
-   theme is allowed to be, and lds-dark.css for a second worked example. */
-import './theme/dark.css'
+/* The themes — ALL of them, selected at runtime rather than imported one at
+   a time. themes.ts globs this directory, so there is no list here to keep
+   in step with the files; see src/theme/dark.css for what a theme is allowed
+   to be, and DESIGN.md §8 for why the swap is no longer an import. */
+import { applyTheme, initialTheme } from './theme/themes'
 import App from './App'
+import { TALK } from './deck/talk.config'
 import { SECTIONS } from './content/talk'
 import { PresenterNotes } from './stage/PresenterNotes'
 
@@ -71,6 +74,40 @@ if (params.get('contrast') === 'high') {
 // The presenter window is the same bundle under ?notes=1 — no second build,
 // no second server, and it can never fall out of sync with the deck.
 const isNotes = params.get('notes') === '1'
+
+/* The nameplate, applied at startup.
+   ------------------------------------------------------------------------
+   index.html is ENGINE, not talk: it is static, Vite serves it before any
+   module runs, and it cannot read talk.config.ts. So it ships a placeholder
+   title and favicon and the deck corrects both here, on the first tick.
+
+   This is the same move CHANNEL and PDF_FILENAME already make — one string
+   in talk.config.ts, every consumer derives from it. Before this existed,
+   `title` and `favicon` were the two fields in that file nothing read, so
+   renaming a talk still meant hand-editing index.html: exactly the
+   six-file scavenger hunt the config file claims to have ended. Do not
+   start again.
+
+   export-pdf.mjs takes the PDF's Title metadata from page.title(), so this
+   line is also what puts the talk's name in the exported file's properties.
+
+   The presenter window is the same bundle under ?notes=1, so it is labelled
+   here too. Two windows carrying the same name in the taskbar is a thing
+   you fumble live, with the room watching you do it. */
+document.title = isNotes ? `${TALK.title} — notes` : TALK.title
+
+const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+if (icon) icon.href = `${import.meta.env.BASE_URL}${TALK.favicon}`
+
+/* The theme, before first paint. ?theme= wins over the talk's own choice, so
+   you can show the same deck in a second brand without editing anything —
+   and it survives a reload, which is the point of putting it in the URL
+   rather than in memory.
+
+   `url: false` because the flag is already in the address bar if it was
+   asked for, and writing the configured default into a clean URL would mean
+   every deck is opened with a query string it never needed. */
+applyTheme(initialTheme(TALK.theme, window.location.search), { url: false })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>{isNotes ? <PresenterNotes /> : <App />}</StrictMode>,

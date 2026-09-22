@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { openPresenterWindow, useStage } from './StageProvider'
 import { PDF_FILENAME, TALK } from '../deck/talk.config'
+import { applyTheme, THEMES } from '../theme/themes'
 
 /** Three lines, drawn rather than typed — a `☰` glyph renders at a different
  *  weight and baseline in every fallback face, and the brand faces do not
@@ -65,6 +66,63 @@ function CadenceControl() {
         <span>slower</span>
       </div>
       <p className="menu__value">{label}</p>
+    </div>
+  )
+}
+
+/** Which brand the deck wears, as a thing you pick before anyone is in the
+ *  room.
+ *
+ *  NO KEY, deliberately, and it is the one control where that is the right
+ *  answer — see DESIGN.md §8. Contrast is keyed because the room watches you
+ *  rescue a bad projector; the theme is decided at a desk and then never
+ *  touched again, and a stray keypress that re-brands a client's deck
+ *  mid-sentence is a live failure invented to satisfy a rule about the
+ *  argument, which this is not part of.
+ *
+ *  The options come from themes.ts, which reads the directory — adding a
+ *  theme file is the whole of adding an option here. */
+function ThemeControl() {
+  const [theme, setTheme] = useState(
+    () => document.documentElement.dataset.theme ?? THEMES[0]?.id,
+  )
+
+  // One theme is not a choice. A deck that ships a single brand gets no
+  // control rather than a dropdown that does nothing.
+  if (THEMES.length < 2) return null
+
+  return (
+    <div className="menu__setting">
+      <div className="menu__settingHead">
+        <label htmlFor="theme">Theme</label>
+        {theme !== TALK.theme && (
+          <button
+            className="menu__reset"
+            onClick={() => {
+              applyTheme(TALK.theme)
+              setTheme(TALK.theme)
+            }}
+          >
+            reset
+          </button>
+        )}
+      </div>
+
+      <select
+        id="theme"
+        className="menu__select"
+        value={theme}
+        onChange={(e) => {
+          applyTheme(e.target.value)
+          setTheme(e.target.value)
+        }}
+      >
+        {THEMES.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.label}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }
@@ -145,6 +203,57 @@ function ExportChip() {
 const LOGO = TALK.logo.src ? `${import.meta.env.BASE_URL}${TALK.logo.src}` : null
 
 /**
+ * The corner mark, in the theme's colour or in its own.
+ *
+ * TINTED, it is drawn as a CSS mask over `--accent-fill`: the file supplies
+ * the silhouette, the theme supplies the colour, and switching theme moves
+ * the mark with it. That is the whole reason the shipped placeholder knocks
+ * its letterform out as a hole instead of painting it in a second colour —
+ * a mask reads alpha and throws colour away, so a two-tone mark would arrive
+ * as a solid square.
+ *
+ * UNTINTED — the default, and what a real logo wants — it is a plain <img>
+ * and renders exactly as drawn.
+ *
+ * Both paths PROBE THE FILE FIRST and render nothing if it is missing, which
+ * is the contract public/brand/README.md states. It earns its place twice.
+ * It replaces the <img onError> this used to rely on, which a <span> cannot
+ * have — and it settles what a mask does when its image 404s, which the
+ * engines need not agree about: Chromium paints nothing (tested), but
+ * reading the failed value as `mask-image: none` is also defensible, and
+ * that paints the *un-masked* element — a solid accent rectangle in the
+ * corner of every slide. Asking first means we never find out the hard way,
+ * on someone else's browser, in front of a room.
+ */
+function BrandMark() {
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!LOGO) return
+    const probe = new Image()
+    probe.onload = () => setSrc(LOGO)
+    probe.src = LOGO
+  }, [])
+
+  if (!src) return null
+
+  if (!TALK.logo.tint) {
+    return <img src={src} alt={TALK.logo.alt} className="chrome__logo" />
+  }
+
+  return (
+    <span
+      className="chrome__logo chrome__logo--tint"
+      role="img"
+      aria-label={TALK.logo.alt}
+      /* The URL is data from the talk's config; the colour it is painted in
+         stays in the stylesheet, where every colour in this repo lives. */
+      style={{ '--logo-src': `url("${src}")` } as CSSProperties}
+    />
+  )
+}
+
+/**
  * Persistent frame: the brand mark, the mode switch, and a keyboard legend that
  * collapses out of the way. Everything here is deliberately low-contrast — it
  * must never compete with the content on a projector.
@@ -152,7 +261,6 @@ const LOGO = TALK.logo.src ? `${import.meta.env.BASE_URL}${TALK.logo.src}` : nul
 export function Chrome() {
   const { mode, setMode } = useStage()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [logo, setLogo] = useState<string | null>(LOGO)
   const toolsRef = useRef<HTMLDivElement | null>(null)
 
   /* Click anywhere else to dismiss. The menu covers the bottom-right corner
@@ -172,14 +280,7 @@ export function Chrome() {
     <>
       <div className="chrome chrome--brand">
         {/* Icon-only mark on charcoal, per the theme's logo rules. */}
-        {logo && (
-          <img
-            src={logo}
-            alt={TALK.logo.alt}
-            className="chrome__logo"
-            onError={() => setLogo(null)}
-          />
-        )}
+        <BrandMark />
       </div>
 
       <div className="chrome chrome--tools" ref={toolsRef}>
@@ -207,16 +308,17 @@ export function Chrome() {
         {menuOpen && (
           <div className="menu" role="dialog" aria-label="Settings and keys">
             <CadenceControl />
+            <ThemeControl />
 
             <ul className="menu__keys">
               <li>
-                <kbd>Space</kbd> <kbd>→</kbd> next section
+                <kbd>Space</kbd> <kbd>→</kbd> <kbd>N</kbd> next section
               </li>
               <li>
-                <kbd>←</kbd> <kbd>Backspace</kbd> back
+                <kbd>←</kbd> <kbd>Backspace</kbd> <kbd>P</kbd> back
               </li>
               <li>
-                <kbd>1</kbd>–<kbd>6</kbd> expand a detail · <kbd>Esc</kbd> close
+                <kbd>1</kbd>–<kbd>9</kbd> expand a detail · <kbd>Esc</kbd> close
               </li>
               <li>
                 <kbd>Enter</kbd> rebuild this section

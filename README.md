@@ -54,20 +54,32 @@ not clicking through bullets while the room watches you nod at your laptop.
 
 | Key | Does |
 |---|---|
-| `→` `↓` `Space` `PageDown` | next section |
-| `←` `↑` `PageUp` | previous section |
-| `Home` / `End` | first / last section |
+| `→` `Space` `PageDown` `N` | next section |
+| `←` `PageUp` `Backspace` `P` | previous section |
 | `1`–`9` | expand a detail, where a section has them |
 | `0` / `Esc` | close it |
 | `Enter` | rebuild this section; replay its animation |
 | `R` | read mode — everything revealed, scrollable, for sharing the link |
 | `S` | presenter window on the second screen |
-| `?` | key legend |
+| `C` | projector rescue mode — see the URL flags below |
+| `F` | fullscreen |
+
+`PageUp`/`PageDown` are there because that is what most presentation clickers
+emit. `↑`/`↓` scroll the page in the deck window and are **not** bound to
+anything there; they move sections in the **presenter window**, where there is
+nothing to scroll and your hands already are.
+
+There is no key that fires a single beat — beats arrive on their own — and no
+`?` for this list. The legend lives behind the ☰ button, which you press at a
+desk, not on stage.
 
 URL flags, all of which survive a reload:
 
 - `?contrast=high` — projector rescue mode, for when the venue optics crush
-  every dark tone into mud. Decide this in rehearsal, not at the lectern.
+  every dark tone into mud. `C` toggles the same thing live, which is the one
+  you will actually use, two minutes before you start.
+- `?theme=<id>` — any theme in `src/theme/`, by filename. Also a dropdown in
+  the ☰ menu; the deck starts in whatever `talk.config.ts` names.
 - `?cadence=ms` — how fast a section builds. Default 250; `0` is instant.
 - `?mode=read` / `?notes=1` — read mode and the presenter window directly.
 
@@ -79,8 +91,10 @@ Everything you write is in two files.
 
 ### 1. `src/deck/talk.config.ts` — the nameplate
 
-Title, slug, logo, favicon. Twelve strings that used to be scattered across
-six files.
+Title, slug, logo, favicon, theme. Twelve strings that used to be scattered
+across six files. Change them and rebuild: the tab, the favicon, the PDF's
+filename and metadata, the presenter window's title and the deck's colours
+all follow from here — there is no second file to remember.
 
 ### 2. `src/content/talk.ts` — the talk
 
@@ -123,6 +137,59 @@ is the slide where it matters most.
 
 ---
 
+## Porting a deck you already have
+
+Most first talks here are not written from scratch — they are a PowerPoint you
+have already given. That works, but it is a translation, not an import, and
+the places it stops being one-to-one are predictable.
+
+**Read the `.pptx` as the zip it is.** No library needed:
+
+```bash
+unzip -o -q talk.pptx -d out/
+```
+
+`ppt/slides/slideN.xml` holds the text — walk the `<a:p>` and `<a:t>` runs,
+and the `lvl` attribute gives you the indent level. `ppt/media/*` holds every
+embedded image. `ppt/slides/_rels/slideN.xml.rels` is what tells you which
+media file belongs to which slide, which you need and cannot guess. A short
+Node script turns all of that into per-slide text and image manifests.
+
+**Then the judgement calls, which no script makes for you:**
+
+- **One slide, two screenshots, is the normal case and has no clean
+  translation.** Both images land in one figure column and shrink until
+  neither can be read. Almost always the answer is to split the slide into
+  two sections. The exception is a pair of narrow, same-aspect assets — two
+  portrait phone screenshots side by side read fine. The rule is not "never
+  two," it is "never two when either one has to be read."
+- **A `title` section makes a good mid-deck divider**, not just an opener. If
+  you are merging two decks, a part-break that looks like a beginning reads
+  better than a body slide with three bullets on it, and it costs no new
+  renderer.
+- **Every PowerPoint sentence has somewhere to go.** The fragment goes on
+  screen, the original sentence goes verbatim into `notes`. Nothing is lost
+  in the port; it is relocated. If you find yourself deleting a sentence
+  rather than moving it, you are editing the talk, which is a different job
+  and worth knowing you have started.
+- **Look at every extracted image before you write its `alt`.** A diagram, a
+  screenshot and a code block need very different descriptions, and the alt
+  text is all a screen-reader user gets.
+
+**Two habits that pay for themselves:**
+
+- `npm run build` after each section, not at the end. `tsc -b` catches a
+  mistyped builder immediately, while you still know what you meant.
+- Check figures in the DOM, not in a screenshot. A missing or mis-scaled
+  image looks like whitespace in a screenshot and like nothing at all in your
+  memory of it — `img.naturalWidth` in the console is one line and does not
+  lie.
+
+And test at the size you will present at. The default browser window is not
+16:9; a section that fits it can still clip top and bottom at 1280×720.
+
+---
+
 ## What ships
 
 Five patterns and three diagrams, all data-driven. Use one, or write your own
@@ -158,15 +225,17 @@ src/
   content/talk.ts        ← YOUR TALK. Everything the audience reads.
   content/*.png          ← your screenshots
   deck/
-    talk.config.ts       ← YOUR NAMEPLATE. Title, slug, logo.
+    talk.config.ts       ← YOUR NAMEPLATE. Title, slug, logo, theme.
     content-types.ts     the contract: Beat, LineItem, section(), line()…
     registry.ts          name → component, and the startup check
   stage/                 beat machine, keyboard, present/read, presenter window
   components/            renderers and patterns
   theme/
-    base.css             shared; no colours chosen here
+    _base.css            shared; no colours chosen here (partial, not a theme)
     dark.css             the default — neutral, with a measured contrast table
     lds-dark.css         a second worked example, from a real brand
+                         every theme here ships; pick one in the settings
+                         menu, with ?theme=<id>, or as `theme` in talk.config
 public/brand/            your mark and favicon (placeholders ship)
 verify.mjs               walks every beat and asserts what rendered
 export-pdf.mjs           one page per section, via real Chromium
@@ -178,8 +247,31 @@ Roughly 90/10 by volume. The 10% is the talk.
 
 ## Before you present
 
+`verify` and the PDF export drive a real Chromium through Playwright. `npm
+install` gets the Playwright *package*; the browser itself is a separate
+~200MB download, once per machine:
+
 ```bash
-npm run build          # tsc -b first, so type errors stop you here
+npx playwright install chromium
+```
+
+Skip it and the first `npm run verify` on a clean clone fails immediately
+with `browserType.launch: Executable doesn't exist`.
+
+**On a slow or shared network**, that download can fail outright — Playwright
+gives each request about 30 seconds, and 200MB does not land in 30 seconds on
+a busy conference or campus connection. The failure says `Download failure,
+code=1` and does not mention timeouts, so it reads like an outage. Raise the
+limit:
+
+```bash
+PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=600000 npx playwright install chromium
+```
+
+Then, every time:
+
+```bash
+npm run build          # tsc -b and the theme check first, so errors stop you here
 npm run preview        # serve the build on :4173
 npm run verify         # in a second terminal — walks every beat
 ```

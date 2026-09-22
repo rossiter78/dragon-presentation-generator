@@ -1,8 +1,14 @@
 /* ==========================================================================
    Default dark theme — neutral.
    --------------------------------------------------------------------------
-   THE DEFAULT. Swap it by changing one import in main.tsx; see lds-dark.css
-   for a second, real-brand example.
+   THE DEFAULT, named by `theme` in src/deck/talk.config.ts. Every theme in
+   this directory ships in the bundle and is selectable at runtime — from the
+   settings menu, or with ?theme=dark — so the tokens below are scoped to
+   this file's [data-theme] value rather than to a bare :root. A theme file
+   that forgets that scope styles every other theme too; check-themes.mjs
+   fails the build if the selector and the filename disagree.
+
+   See lds-dark.css for a second, real-brand example.
 
    A THEME IS A TOKEN SET, NOT A CODE CHANGE. Every colour, face and size the
    deck uses is named below. No component picks a colour of its own, and if
@@ -47,9 +53,9 @@
    numbers above were computed, not eyeballed.
    ========================================================================== */
 
-@import './base.css';
+@import './_base.css';
 
-:root {
+:root[data-theme='dark'] {
   /* --- the accent, unmodified ------------------------------------------- */
   --brand: #2f6fed;
 
@@ -111,7 +117,7 @@
    you want when you discover the projector is bad two minutes before you
    start. Every theme should define one.
    -------------------------------------------------------------------------- */
-:root[data-contrast='high'] {
+:root[data-theme='dark'][data-contrast='high'] {
   --ink: #18202b;
   --surface: #222b38;
   --surface-2: #2c3644;

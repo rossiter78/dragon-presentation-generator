@@ -4,7 +4,8 @@
   "description": "A keyboard-driven, offline-first presentation engine. Your talk is typed data; the stage layer never knows what it is about.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node check-themes.mjs && tsc -b && vite build",
+    "check:themes": "node check-themes.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "export:pdf": "node export-pdf.mjs",
     "verify": "node verify.mjs"

@@ -86,6 +86,15 @@ you press it at a desk with a mouse in your hand. The rule is about the
 argument — anything the room watches you do needs a key. Housekeeping does
 not, and giving it a key would waste one.
 
+The settings menu behind the hamburger is the same category, and it is worth
+naming as a surface rather than as a series of exceptions: it is **pre-flight,
+not stage**. The build-speed slider and the theme picker are both things you
+set with a mouse before anyone is watching, and neither has a key. The test
+is not "is there a pointer path" but "does the room watch you do it" — the
+contrast toggle is watched and therefore keyed, everything in that menu is
+not. What the rule forbids is a pointer path to *the argument*: expanding a
+detail, advancing a beat, revealing a line.
+
 ---
 
 ## 3. Fragments on screen. Sentences in the speaker notes.
@@ -277,6 +286,69 @@ table, because it is believed.
 near-black, strengthens every line, and kills the glows. Venue projectors
 crush blacks; this is ninety seconds of insurance.
 
+### Switching a theme is a runtime choice, not a rebuild
+
+This supersedes the original "one import in `main.tsx`, one swap" rule. That
+rule had a failure mode nobody saw coming: whichever theme `main.tsx` did not
+import was never parsed by anything, so `lds-dark.css` sat in the repo with an
+unclosed comment — a hard `CssSyntaxError` — through a green build. It failed
+for the first person who tried to *use* the second theme, which is the worst
+possible person for it to fail for.
+
+Every theme in `src/theme/` now ships in the bundle and scopes its tokens
+under a `data-theme` attribute:
+
+```css
+:root[data-theme='lds-dark'] { … }
+:root[data-theme='lds-dark'][data-contrast='high'] { … }
+```
+
+`main.tsx` collects them with `import.meta.glob` rather than naming one, so
+the set of themes is derived from the directory rather than mirrored by hand
+— the same rule the beat list follows, over the same directory
+`check-themes.mjs` compiles. The leading underscore in `_base.css` marks it a
+partial: it holds element rules, not tokens, and the glob skips it.
+
+Which theme loads first is per-talk identity, so it lives in `talk.config.ts`
+beside the title and the logo rather than in a source import. `?theme=<id>`
+overrides it for one session and survives a reload, exactly as
+`?contrast=high` does. `index.html` carries a static `data-theme` for the
+same reason it carries `data-contrast` — with tokens scoped to the
+attribute, a document without one has no colours at all, and the placeholder
+keeps the deck styled for the frame before the bundle runs.
+
+A component still never knows which theme is loaded. The picker writes an
+attribute on the document element; it does not name a colour, and neither
+does anything downstream of it.
+
+**The corner mark follows the theme, if you let it.** `logo.tint` in
+`talk.config.ts` paints the mark in `--accent-fill` through a CSS mask, so a
+theme swap moves it too — the shipped placeholder is drawn as one path with
+its letterform knocked out as a real hole precisely so that it survives a
+mask, which reads alpha and discards colour. It is off by default: a real
+logo has fixed colours by definition, and flattening someone's brand to a
+silhouette is not a default worth having. What is not defensible is the
+version that shipped first, where the *placeholder* — example content, owned
+by nobody — hardcoded the default theme's blue and stayed blue on a red
+deck.
+
+### Why contrast has a key and the theme does not
+
+They look like the same control and are not:
+
+| | `C` — projector rescue | the theme picker |
+|---|---|---|
+| what it changes | how legible the deck is | who the deck belongs to |
+| when you reach for it | on stage, two minutes in, because the projector is bad | at a desk, before anyone is in the room |
+| how often, per talk | once if the venue is against you | once, and then never again |
+
+Contrast is a thing the room watches you fix, so §2 says it needs a key. The
+theme is housekeeping — the same category as the PDF button and the build-
+speed slider — so it lives in the settings menu and does not spend one of the
+letters. Binding it would also mean a stray keypress can change a client's
+branding mid-sentence, which is a live failure invented to serve a rule that
+does not apply here.
+
 ---
 
 ## 9. Content is typed data, not markup
@@ -444,6 +516,18 @@ a scaled graphic without knowing the property exists.
 - **A notes editor route.** Batch-editing every section's notes on one screen
   is cheap to imitate when the notes already live in one file.
 
+- **The QR decode check did not come across.** `make-qr.mjs` prints "decode
+  it before trusting it — see the check in the talk repo," and that check is
+  not in this repo. `jsqr` and `pngjs` are in `devDependencies` and nothing
+  imports them, which is the shape of a test that was left behind during
+  extraction. Until it is rewritten, a QR that does not scan ships silently,
+  and the note telling you to check it by hand is the only defence.
+
 - **A light theme.** Both shipped themes are dark. Nothing in the engine
   assumes it — every colour is a token — but nobody has measured a light
-  palette, and an unmeasured theme is exactly what §8 argues against.
+  palette, and an unmeasured theme is exactly what §8 argues against. Note
+  that the theme picker makes adding one *easier to ship and no easier to
+  justify*: dropping a file in `src/theme/` now puts it in front of a user
+  in a dropdown, so the duty to measure the contrast table and write it into
+  the file header is stronger than it was when a theme cost a code change to
+  reach.

@@ -81,14 +81,37 @@ export interface FigureItem {
    of the room in rehearsal.
 
    Out-of-range numbers are clamped rather than rejected: a typo should make
-   one slide look wrong in rehearsal, not blank the deck on stage. */
+   one slide look wrong in rehearsal, not blank the deck on stage. The clamp
+   WARNS IN DEV, because that promise did not hold on its own. `scale: 0.8`
+   — the natural writing of "80%" if you have not read this block — clamps
+   to 1, renders the figure about three pixels tall, and a figure that small
+   does not read as wrong. It reads as absent, which you diagnose as "I have
+   not added that image yet" rather than "I have a bug." A value strictly
+   between 0 and 1 is never legitimate (1 is the floor), so it is always the
+   fraction typo and is named as such. */
 const SCALE_MIN = 1
 const SCALE_MAX = 100
+
+/* Once per bad value, not once per render. scaleFactor() runs on every
+   paint of the figure that carries the typo, so an undeduped warning buries
+   the console under a hundred copies of itself and you stop reading it —
+   which is the failure this warning exists to prevent, moved one level up. */
+const warnedScales = new Set<number>()
 
 /** 1–100 as authored → the multiplier the CSS wants. */
 export function scaleFactor(scale: number | undefined): number | undefined {
   if (scale === undefined) return undefined
   const n = Math.min(SCALE_MAX, Math.max(SCALE_MIN, scale))
+  if (import.meta.env.DEV && n !== scale && !warnedScales.has(scale)) {
+    warnedScales.add(scale)
+    console.warn(
+      scale > 0 && scale < 1
+        ? `scale: ${scale} looks like a fraction — it is a PERCENTAGE, 1–100. ` +
+            `Clamped to ${SCALE_MIN}, which renders the figure a few pixels ` +
+            `tall. You probably meant scale: ${Math.round(scale * 100)}.`
+        : `scale: ${scale} is outside 1–100 and was clamped to ${n}.`,
+    )
+  }
   return n / 100
 }
 

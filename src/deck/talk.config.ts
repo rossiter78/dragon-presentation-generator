@@ -13,9 +13,12 @@
    ========================================================================== */
 
 export interface TalkConfig {
-  /** Browser tab, PDF metadata, and the fallback <title>. Keep it short —
-   *  it shows up in the presenter window's title bar on the second screen,
-   *  where you read it at a glance. */
+  /** Browser tab and PDF metadata. Applied to `document.title` at startup
+   *  in main.tsx — index.html ships a placeholder that this replaces, and
+   *  export-pdf.mjs reads the live title back out for the PDF's properties.
+   *
+   *  Keep it short: the presenter window appends " — notes" and shows it in
+   *  the title bar on the second screen, where you read it at a glance. */
   title: string
 
   /** Filename for the PDF export, WITHOUT the extension. Lower-case and
@@ -44,18 +47,55 @@ export interface TalkConfig {
    *  mark simply does not render: the deck NEVER reaches out to the network
    *  to draw itself, which is the rule that keeps it presentable offline.
    *  See public/brand/README.md. */
-  logo: { src: string | null; alt: string }
+  logo: {
+    src: string | null
+    alt: string
+
+    /** Paint the mark in the theme's `--accent-fill` instead of its own
+     *  colours, so it follows a theme swap rather than staying the colour it
+     *  was drawn in.
+     *
+     *  OFF BY DEFAULT, and that is deliberate: your logo is your logo, and a
+     *  tint flattens it. It is drawn as a CSS mask, which reads only the
+     *  file's ALPHA — so a two-colour mark masks to its silhouette and loses
+     *  the inner shapes, unless those shapes are real holes. The placeholder
+     *  in public/brand/ is drawn that way on purpose and sets this true; a
+     *  real multi-colour logo should leave it off.
+     *
+     *  Square marks only. The corner box is square, and a wide wordmark will
+     *  letterbox inside it rather than fill it. */
+    tint?: boolean
+  }
 
   /** Favicon, relative to public/. Shows in the tab and in the presenter
    *  window, which is the only place you will actually notice it. */
   favicon: string
+
+  /** Which theme the deck opens in — a filename in src/theme/, without the
+   *  extension: 'dark', 'lds-dark'. Every theme in that directory ships in
+   *  the bundle and any of them can be selected from the settings menu or
+   *  with ?theme=<id>; this is only the one it STARTS in.
+   *
+   *  It lives here rather than as an import in main.tsx because which brand
+   *  a deck wears is identity, the same as the logo beside it. An id with no
+   *  matching file warns at startup and falls back rather than rendering an
+   *  unstyled deck. */
+  theme: string
 }
 
 export const TALK: TalkConfig = {
   title: 'Dragon Presentation Generator',
   slug: 'dragon-presentation-generator',
-  logo: { src: 'brand/mark.svg', alt: 'Dragon Presentation Generator' },
+  logo: {
+    src: 'brand/mark.svg',
+    alt: 'Dragon Presentation Generator',
+    // The shipped mark is a placeholder belonging to nobody, so it follows
+    // the theme rather than pinning the deck to one colour. Drop your own
+    // logo in and turn this off.
+    tint: true,
+  },
   favicon: 'brand/favicon.svg',
+  theme: 'dark',
 }
 
 /** The BroadcastChannel namespace. Explicit `channel` wins; otherwise the

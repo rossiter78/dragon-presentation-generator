@@ -3,8 +3,9 @@
    --------------------------------------------------------------------------
    Not the default. It is here to show that a theme is a token set and
    nothing else: this file and dark.css define the same names, import the
-   same base, and no component knows which one is loaded. Switch by changing
-   one import in main.tsx.
+   same base, and no component knows which one is loaded. Reach it from the
+   settings menu, with ?theme=lds-dark, or by naming it as `theme` in
+   src/deck/talk.config.ts.
 
    It is also a worked example of the awkward case, which is the common one.
    Derived from a brand specified as a LIGHT theme (Corporate Red #C0222E,
@@ -35,10 +36,10 @@
       #3D4F5C charcoal      2.23:1   borders and surfaces only
    ========================================================================== */
 
-@import './base.css';
+@import './_base.css';
 
 
-:root {
+:root[data-theme='lds-dark'] {
   /* --- brand, unmodified ------------------------------------------------ */
   --lds-red: #c0222e;
   --lds-charcoal: #3d4f5c;
@@ -95,7 +96,7 @@
    background off true black, strengthens every line, and kills the ambient
    glows that turn to mud on bad optics.
    -------------------------------------------------------------------------- */
-:root[data-contrast='high'] {
+:root[data-theme='lds-dark'][data-contrast='high'] {
   --ink: #16202a;
   --surface: #1f2c38;
   --surface-2: #283746;
@@ -116,3 +117,9 @@
 
    The weights imported there must match the stacks above:
      Montserrat      600, 700
+     Source Sans 3   400, 600
+     JetBrains Mono  400, 500
+
+   Change a stack above without changing those imports and you ship a
+   fallback face you will not see until the projector.
+   -------------------------------------------------------------------------- */
