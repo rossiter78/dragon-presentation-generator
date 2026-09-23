@@ -239,6 +239,7 @@ src/
 public/brand/            your mark and favicon (placeholders ship)
 verify.mjs               walks every beat and asserts what rendered
 export-pdf.mjs           one page per section, via real Chromium
+DeployToHereNow.mjs      publishes dist/ to a here.now site
 ```
 
 Roughly 90/10 by volume. The 10% is the talk.
@@ -287,6 +288,43 @@ npm run verify         # in a second terminal — walks every beat
 
 **Present from `npm run preview`.** Never `file://`, never venue wifi. And
 build first — preview serves whatever was last built.
+
+---
+
+## Publishing to here.now
+
+`DeployToHereNow.mjs` uploads the built deck to [here.now](https://here.now)
+so it has a shareable URL — handy for sending the deck to people after the
+talk. It uses Node's built-in `fetch`, so there is nothing extra to install.
+
+1. Put your here.now API key in the `HERENOW_API_KEY` environment variable.
+   Never commit it.
+
+   ```bash
+   # macOS / Linux / Git Bash
+   export HERENOW_API_KEY=your-key-here
+   ```
+
+   ```powershell
+   # PowerShell
+   $env:HERENOW_API_KEY = "your-key-here"
+   ```
+
+2. Build, then publish the output folder:
+
+   ```bash
+   npm run build
+   node DeployToHereNow.mjs <slug> dist
+   ```
+
+`<slug>` is the here.now site to update; the folder defaults to `dist` if
+omitted. The script hashes every file and uploads only what changed, then
+finalizes the new version and prints the response.
+
+- It **updates an existing site** (a `PUT` to `/api/v1/publish/<slug>`); it
+  does not create one. Create the site on here.now first.
+- The published copy is for sharing afterwards. **Present from
+  `npm run preview`**, not from the hosted URL — the offline rule still holds.
 
 ---
 
