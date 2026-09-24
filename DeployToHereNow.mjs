@@ -5,12 +5,25 @@ import crypto from "crypto";
 const [, , slug, dir = "dist"] = process.argv;
 const KEY = process.env.HERENOW_API_KEY;
 
+if (!slug) {
+  console.error("usage: node DeployToHereNow.mjs <slug> [dir]");
+  process.exit(1);
+}
+if (!KEY) {
+  console.error("HERENOW_API_KEY is not set. See \"Publishing to here.now\" in README.md.");
+  process.exit(1);
+}
+if (!fs.existsSync(dir)) {
+  console.error(`No "${dir}" folder. Run npm run build first.`);
+  process.exit(1);
+}
+
 const types = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8", ".json": "application/json",
   ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
-  ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".map": "application/json",
+  ".woff": "font/woff", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".map": "application/json",
 };
 
 const walk = (d) =>
