@@ -5,7 +5,7 @@
 
    1. A THEME THAT DOES NOT PARSE. A theme used to be selected by an import
       in main.tsx, which meant every other theme in this directory was read
-      by nothing. lds-dark.css sat in the repo with an unclosed comment — a
+      by nothing. dark-red.css sat in the repo with an unclosed comment — a
       hard CssSyntaxError — through a green build, and failed for the first
       person who tried to USE it. Vite's own CSS pipeline runs over each file
       here as its own entry: same parser, same @import resolution, same

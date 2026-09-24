@@ -66,7 +66,18 @@ export interface StageSnapshot {
   startedAt: number | null
   /** Which numbered detail is expanded, if any. */
   detail: number | null
+  /** Enter presses so far. The mirror replays the chat exchange on a change. */
+  replayToken: number
+  /** The deck window's CSS size, so the mirror can lay out at the projector's
+   *  size and scale down, rather than reflowing into a thumbnail. */
+  viewport: { width: number; height: number }
 }
+
+/** `?mirror=1` is the deck as a passenger — the small replica inside the
+ *  presenter window. It renders the same sections but drives nothing: no
+ *  keys, no cadence, no broadcasts. It applies the deck's snapshots and
+ *  nothing else, so there is only ever one deck deciding what happens. */
+const MIRROR = new URLSearchParams(window.location.search).get('mirror') === '1'
 
 interface StageValue {
   sections: SectionMeta[]
@@ -119,6 +130,15 @@ export function StageProvider({ children }: { children: ReactNode }) {
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [detail, setDetail] = useState<number | null>(null)
   const [replayToken, setReplayToken] = useState(0)
+  const [viewport, setViewport] = useState(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }))
+  /** Mirror only: false until the first snapshot lands. The sections are not
+   *  rendered before then, so the replica never flashes the title slide, and
+   *  the chat replay mounts already knowing the deck's replay count instead
+   *  of mistaking the first sync for an Enter press. */
+  const [synced, setSynced] = useState(!MIRROR)
 
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const sectionEls = useRef<(HTMLElement | null)[]>([])
@@ -196,7 +216,8 @@ export function StageProvider({ children }: { children: ReactNode }) {
      changes under it. Arriving at an already-built section (stepping back,
      where `prev` sets the last beat) schedules nothing at all. */
   useEffect(() => {
-    if (mode !== 'present') return
+    // The mirror never builds on its own; every beat arrives from the deck.
+    if (mode !== 'present' || MIRROR) return
     const last = lastBeatOf(sectionIndex)
     if (beat >= last) return
     // cadence=0 is "no cascade" — the whole section at once, for anyone who
@@ -213,7 +234,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
   /* --- scroll → active section ----------------------------------------- */
   useEffect(() => {
     const root = scrollerRef.current
-    if (!root) return
+    if (!root || MIRROR) return
     const observer = new IntersectionObserver(
       (entries) => {
         if (programmatic.current) return
@@ -236,6 +257,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
 
   /* --- keyboard --------------------------------------------------------- */
   useEffect(() => {
+    if (MIRROR) return
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return
@@ -309,11 +331,30 @@ export function StageProvider({ children }: { children: ReactNode }) {
      and lets the notes window drive the deck too — so you can advance from
      whichever window has focus. */
   const publish = useCallback(() => {
+    if (MIRROR) return // a passenger has nothing to announce
     channel.current?.postMessage({
       type: 'state',
-      payload: { sectionIndex, beat, mode, startedAt, detail } satisfies StageSnapshot,
+      payload: {
+        sectionIndex,
+        beat,
+        mode,
+        startedAt,
+        detail,
+        replayToken,
+        viewport,
+      } satisfies StageSnapshot,
     })
-  }, [sectionIndex, beat, mode, startedAt, detail])
+  }, [sectionIndex, beat, mode, startedAt, detail, replayToken, viewport])
+
+  // The replica is laid out at the deck's size, so a resize — going
+  // fullscreen on the projector, most of all — has to reach it.
+  useEffect(() => {
+    if (MIRROR) return
+    const onResize = () =>
+      setViewport({ width: window.innerWidth, height: window.innerHeight })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   // Handlers change every beat; the channel must not. Keep the live versions
   // in a ref so the socket is opened exactly once.
@@ -323,6 +364,27 @@ export function StageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const ch = new BroadcastChannel(CHANNEL)
     channel.current = ch
+
+    if (MIRROR) {
+      // Listen to the deck's snapshots and to nothing else — above all not
+      // to next/prev from the notes window, or two decks would both step.
+      ch.onmessage = (e: MessageEvent) => {
+        if (e.data?.type !== 'state') return
+        const s = e.data.payload as StageSnapshot
+        setSectionIndex(s.sectionIndex)
+        setBeat(s.beat)
+        setMode(s.mode)
+        setDetail(s.detail)
+        setReplayToken(s.replayToken)
+        setSynced(true)
+      }
+      ch.postMessage({ type: 'hello' }) // ask the deck for where it is now
+      return () => {
+        ch.close()
+        channel.current = null
+      }
+    }
+
     ch.onmessage = (e: MessageEvent) => {
       switch (e.data?.type) {
         case 'hello':
@@ -366,9 +428,27 @@ export function StageProvider({ children }: { children: ReactNode }) {
   // dependency is the section, not the beat: beats now advance on their own
   // every few hundred milliseconds, and closing on every one of those would
   // make a detail opened during the cascade snap shut under your hand.
+  // The mirror skips this: its detail comes from the deck, and clearing it
+  // here would drop a detail that was already open when the notes opened.
   useEffect(() => {
-    setDetail(null)
+    if (!MIRROR) setDetail(null)
   }, [sectionIndex])
+
+  /* The mirror follows the deck's section by setting the scroller's offset
+     directly. Not scrollIntoView: inside an iframe that also scrolls every
+     ancestor, and would yank the presenter window to the replica each time
+     the deck moved. Instant rather than smooth, because a replica you glance
+     at should already be where the projector is. Runs after the sections
+     mount, since `synced` gates them and child effects run first. */
+  useEffect(() => {
+    if (!MIRROR || !synced) return
+    const root = scrollerRef.current
+    const el = sectionEls.current[sectionIndex]
+    if (!root || !el) return
+    const top =
+      el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop
+    root.scrollTo({ top, behavior: 'instant' })
+  }, [sectionIndex, synced])
 
   useEffect(() => {
     document.documentElement.dataset.mode = mode
@@ -415,7 +495,9 @@ export function StageProvider({ children }: { children: ReactNode }) {
     ],
   )
 
-  return <StageContext.Provider value={value}>{children}</StageContext.Provider>
+  return (
+    <StageContext.Provider value={value}>{synced ? children : null}</StageContext.Provider>
+  )
 }
 
 export function useStage(): StageValue {
@@ -456,6 +538,22 @@ export function openPresenterWindow() {
   url.searchParams.delete('mode')
   /* Named, so a second press focuses the window you already opened
      rather than spawning another. The name is per-talk for the same reason
-     the channel is: two decks on one origin must not share a window. */
-  window.open(url.toString(), `${TALK.slug}-presenter`, 'width=900,height=760')
+     the channel is: two decks on one origin must not share a window.
+
+     Full screen height, because the replica of the projector sits at the
+     bottom, under the notes, and a window that cuts it off hides the one
+     thing you opened it to glance at. A fixed height was tried (760) and
+     lost the replica on every section; how tall the notes run is up to the
+     talk, so ask the screen, not a constant. Placed at the screen's own
+     origin (`availLeft` is non-standard but in every engine that matters)
+     so the full height fits rather than being clamped short. */
+  const { availWidth, availHeight } = window.screen
+  const origin = window.screen as Screen & { availLeft?: number; availTop?: number }
+  const features = [
+    `width=${Math.min(1100, availWidth)}`,
+    `height=${availHeight}`,
+    `left=${origin.availLeft ?? 0}`,
+    `top=${origin.availTop ?? 0}`,
+  ].join(',')
+  window.open(url.toString(), `${TALK.slug}-presenter`, features)
 }

@@ -1,27 +1,27 @@
 /* ==========================================================================
-   Logic Data Solutions — dark inversion.  A SECOND, REAL EXAMPLE.
+   Dark red — a brand red, inverted for the dark.  A SECOND, REAL EXAMPLE.
    --------------------------------------------------------------------------
    Not the default. It is here to show that a theme is a token set and
-   nothing else: this file and dark.css define the same names, import the
+   nothing else: this file and dark-blue.css define the same names, import the
    same base, and no component knows which one is loaded. Reach it from the
-   settings menu, with ?theme=lds-dark, or by naming it as `theme` in
+   settings menu, with ?theme=dark-red, or by naming it as `theme` in
    src/deck/talk.config.ts.
 
    It is also a worked example of the awkward case, which is the common one.
-   Derived from a brand specified as a LIGHT theme (Corporate Red #C0222E,
-   Dark Charcoal #3D4F5C, Titanium #878681, Light Grey #DCDCDC, Off-White
+   Derived from a brand specified as a LIGHT theme (Brand Red #C0222E,
+   Charcoal #3D4F5C, Titanium #878681, Light Grey #DCDCDC, Off-White
    #F0EEEE). Two rules govern the inversion:
 
-   1. Backgrounds are Dark Charcoal pushed into shadow, never neutral black.
+   1. Backgrounds are Charcoal pushed into shadow, never neutral black.
       This is what makes it read as *the brand* in the dark rather than as
       generic dark mode.
 
-   2. Corporate Red #C0222E measures 3.17:1 on --ink. That fails WCAG AA for
+   2. Brand Red #C0222E measures 3.17:1 on --ink. That fails WCAG AA for
       body text AND for large text. So the brand red is a FILL ONLY colour
       here — solid chips, diagram node fills, the decorative stripe. Any red
       that carries meaning as text or as a line uses the lifted ramp below.
 
-      This is the case dark.css only talks about. Here it is real: the brand
+      This is the case dark-blue.css only talks about. Here it is real: the brand
       colour cannot be used for text at all, and pretending otherwise would
       have put unreadable headings on a projector.
 
@@ -39,13 +39,13 @@
 @import './_base.css';
 
 
-:root[data-theme='lds-dark'] {
+:root[data-theme='dark-red'] {
   /* --- brand, unmodified ------------------------------------------------ */
-  --lds-red: #c0222e;
-  --lds-charcoal: #3d4f5c;
-  --lds-titanium: #878681;
-  --lds-light-grey: #dcdcdc;
-  --lds-off-white: #f0eeee;
+  --brand-red: #c0222e;
+  --brand-charcoal: #3d4f5c;
+  --brand-titanium: #878681;
+  --brand-light-grey: #dcdcdc;
+  --brand-off-white: #f0eeee;
 
   /* --- dark surfaces, derived from charcoal ----------------------------- */
   --ink: #0c1116;
@@ -54,13 +54,13 @@
   --surface-3: #22303d;
 
   /* --- red ramp --------------------------------------------------------- */
-  --accent-fill: var(--lds-red); /* fills only */
+  --accent-fill: var(--brand-red); /* fills only */
   --accent-400: #e04552; /* AA large / UI */
   --accent-300: #ff6b73; /* AA body */
   --accent-glow: rgb(224 69 82 / 22%);
 
   /* --- text ------------------------------------------------------------- */
-  --text: var(--lds-off-white);
+  --text: var(--brand-off-white);
   --text-secondary: #a8a7a2;
   --text-muted: #7d95a6;
 
@@ -96,7 +96,7 @@
    background off true black, strengthens every line, and kills the ambient
    glows that turn to mud on bad optics.
    -------------------------------------------------------------------------- */
-:root[data-theme='lds-dark'][data-contrast='high'] {
+:root[data-theme='dark-red'][data-contrast='high'] {
   --ink: #16202a;
   --surface: #1f2c38;
   --surface-2: #283746;

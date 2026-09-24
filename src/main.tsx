@@ -27,7 +27,7 @@ import '@fontsource/jetbrains-mono/latin-500.css'
 
 /* The themes — ALL of them, selected at runtime rather than imported one at
    a time. themes.ts globs this directory, so there is no list here to keep
-   in step with the files; see src/theme/dark.css for what a theme is allowed
+   in step with the files; see src/theme/dark-blue.css for what a theme is allowed
    to be, and DESIGN.md §8 for why the swap is no longer an import. */
 import { applyTheme, initialTheme } from './theme/themes'
 import App from './App'

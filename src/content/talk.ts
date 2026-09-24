@@ -142,16 +142,16 @@ export const SECTIONS: SectionMeta[] = [
       open: 'Words only. The frame is empty.',
       items: [
         line('A shot lands on its own keypress'),
+        line('Proof goes AFTER the claim it proves', {
+          sub: ['Words first, pictures last'],
+        }),
+        line('The order here is the order on stage', { lead: true }),
         figure(null, {
           pending: 'your-screenshot.png',
           alt: 'A pending figure frame, sized as the real shot will be',
           caption: 'A missing image is a labelled gap, not a broken deck',
           cue: 'Point at the frame. This is what a to-do looks like.',
         }),
-        line('Proof goes AFTER the claim it proves', {
-          sub: ['Narration goes between lines'],
-        }),
-        line('The order here is the order on stage', { lead: true }),
       ],
     },
     budgetMinutes: 2,
@@ -163,7 +163,7 @@ export const SECTIONS: SectionMeta[] = [
        you fall back to when the venue declines to cooperate. */
     demo: 'Show a real screenshot landing on its beat. If the file is missing, the pending frame IS the demo.',
     notes: [
-      'Interleaving is a directing decision and it belongs in the content file, not in a renderer.',
+      'Figures and graphics always go last in a section, after every line — the claim lands before its proof. section() throws at startup if a line follows a picture.',
       'Every pending frame is a to-do with a filename on it. Take the shots before rehearsal, not before the talk.',
       'scale: 1–100 sizes a figure. Omit it on anything the room has to READ — those want every pixel of the default.',
     ],
@@ -186,6 +186,10 @@ export const SECTIONS: SectionMeta[] = [
       open: 'Words only. The ring is not up yet.',
       items: [
         line('Authored SVG, sized by the room'),
+        line('Motion only when motion is the point', {
+          sub: ['A looping gesture steals the eye', 'And gives nothing back'],
+        }),
+        line('Change the count, the diagram re-lays itself', { lead: true }),
         agentRing({
           alt: 'Five peers on a circle, fully meshed, with messages crossing between them',
           caption: 'Every peer reaches every other. Nothing in the middle decides.',
@@ -205,10 +209,6 @@ export const SECTIONS: SectionMeta[] = [
             ],
           },
         }),
-        line('Motion only when motion is the point', {
-          sub: ['A looping gesture steals the eye', 'And gives nothing back'],
-        }),
-        line('Change the count, the diagram re-lays itself', { lead: true }),
       ],
     },
     budgetMinutes: 2,
@@ -269,8 +269,8 @@ export const SECTIONS: SectionMeta[] = [
   }),
 
   /* ========================================================================
-     Another pattern. Number keys 1–n expand a layer; Esc or 0 closes.
-     `detailKeys` for the presenter window is DERIVED from the layer list, so
+     Another pattern. Number keys 1–n expand a piece; Esc or 0 closes.
+     `detailKeys` for the presenter window is DERIVED from the layers, so
      the crib sheet on your second screen cannot drift out of step with the
      actual bindings.
      ===================================================================== */
@@ -279,60 +279,64 @@ export const SECTIONS: SectionMeta[] = [
     title: 'A stack you can open on stage',
     budgetMinutes: 3,
     data: {
-      peer: 'The agent is a peer of the UI, not a layer under it.',
-      peerBeat: 5,
+      // Floor first. A layer with two pieces is split; number keys walk the
+      // pieces in this order — 1 is the floor, 3 is the left half of layer 3.
       layers: [
         {
-          id: 'data',
-          name: 'Data',
-          role: 'data',
-          appearsAt: 1,
-          shape: 'tables',
-          detail: 'One schema, one owner',
-          points: ['Migrations in the repo', 'No second source of truth'],
+          pieces: [
+            {
+              id: 'layer-1',
+              name: 'Layer 1',
+              shape: 'shape',
+              detail: 'One fragment about it',
+              points: ['A point, when opened', 'Another, if it earns it'],
+            },
+          ],
         },
         {
-          id: 'logic',
-          name: 'Logic',
-          role: 'logic',
-          appearsAt: 2,
-          shape: 'functions',
-          detail: 'Rules live once',
-          points: ['Every surface calls the same code', 'No logic in a controller'],
+          pieces: [
+            {
+              id: 'layer-2',
+              name: 'Layer 2',
+              shape: 'shape',
+              detail: 'One fragment about it',
+              points: ['A point, when opened', 'Another, if it earns it'],
+            },
+          ],
         },
         {
-          id: 'api',
-          name: 'API',
-          role: 'surface',
-          appearsAt: 3,
-          shape: 'HTTP',
-          detail: 'For things you wrote',
-          points: ['Versioned', 'Authenticated per user'],
+          pieces: [
+            {
+              id: 'layer-3-1',
+              name: 'Layer 3-1',
+              shape: 'shape',
+              detail: 'One fragment about it',
+              points: ['A point, when opened', 'Another, if it earns it'],
+            },
+            {
+              id: 'layer-3-2',
+              name: 'Layer 3-2',
+              shape: 'shape',
+              detail: 'One fragment about it',
+              points: ['A point, when opened', 'Another, if it earns it'],
+            },
+          ],
         },
         {
-          id: 'tools',
-          name: 'Tools',
-          role: 'surface',
-          appearsAt: 3,
-          shape: 'MCP',
-          detail: 'For things that reason',
-          points: ['Same rules as the API', 'Never a deputy credential'],
-        },
-        {
-          id: 'app',
-          name: 'App',
-          role: 'client',
-          appearsAt: 4,
-          shape: 'PWA',
-          detail: 'For hands',
-        },
-        {
-          id: 'agent',
-          name: 'Agent',
-          role: 'client',
-          appearsAt: 4,
-          shape: 'chat',
-          detail: 'For sentences',
+          pieces: [
+            {
+              id: 'layer-4-1',
+              name: 'Layer 4-1',
+              shape: 'shape',
+              detail: 'One fragment about it',
+            },
+            {
+              id: 'layer-4-2',
+              name: 'Layer 4-2',
+              shape: 'shape',
+              detail: 'One fragment about it',
+            },
+          ],
         },
       ],
     },

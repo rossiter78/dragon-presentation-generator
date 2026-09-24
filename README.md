@@ -82,6 +82,9 @@ URL flags, all of which survive a reload:
   the ☰ menu; the deck starts in whatever `talk.config.ts` names.
 - `?cadence=ms` — how fast a section builds. Default 250; `0` is instant.
 - `?mode=read` / `?notes=1` — read mode and the presenter window directly.
+- `?mirror=1` — the deck as a passenger: follows the real deck, drives
+  nothing. The presenter window embeds it as its replica of the projector;
+  you should not need it directly.
 
 ---
 
@@ -111,8 +114,8 @@ section({
       line('A section builds itself on arrival', {
         sub: ['Beats cascade', 'No clicking through bullets'],
       }),
-      figure(screenshot, { alt: '…', caption: '…' }),
       line('The deck never waits on you mid-thought', { lead: true }),
+      figure(screenshot, { alt: '…', caption: '…' }),
     ],
   },
   budgetMinutes: 2,
@@ -120,9 +123,11 @@ section({
 })
 ```
 
-**One item, one beat, in the order written.** If an image should land between
-two lines, write it between them — that interleaving is a directing decision
-and it belongs in the content file.
+**One item, one beat, in the order written — pictures last.** Every figure
+and graphic goes at the end of `items`, after all the lines. On stage the claim
+lands before the picture that proves it. In the file, the words you edit most
+sit together, without a figure's options in the middle of them. `section()`
+enforces this: a line after a picture fails at startup, naming the section.
 
 ### The copy rule
 
@@ -200,7 +205,7 @@ and register it — see `EXTRA_RENDERERS` in the example content file.
 | `title` | The opening card. One hero line, nothing competing. |
 | `body` | The workhorse: heading, fragments, optional figure column. |
 | `chat` | One input, two recipients, divergent outcomes — any "it depends who you ask" claim. Replays on `Enter`. |
-| `cake` | A stack of named layers, expandable on the number keys. The Q&A slide. |
+| `cake` | A stack of layers, floor up, any of them split into pieces; each piece expands on its number key. The Q&A slide. |
 | `caveat` | The honest-limitation block: claim, failures, defences, close. |
 
 | Graphic | Draws |
@@ -232,8 +237,8 @@ src/
   components/            renderers and patterns
   theme/
     _base.css            shared; no colours chosen here (partial, not a theme)
-    dark.css             the default — neutral, with a measured contrast table
-    lds-dark.css         a second worked example, from a real brand
+    dark-blue.css             the default — neutral, with a measured contrast table
+    dark-red.css         a second worked example, from a real brand
                          every theme here ships; pick one in the settings
                          menu, with ?theme=<id>, or as `theme` in talk.config
 public/brand/            your mark and favicon (placeholders ship)
@@ -283,7 +288,11 @@ npm run verify         # in a second terminal — walks every beat
 - [ ] Budgets totalled against the slot. A 40-minute slot is about 28 minutes
       of talk.
 - [ ] Rehearsed against the presenter window (`S`), on two displays, with the
-      clock running.
+      clock running. Under Back / Next it shows a small replica of the
+      projector, so you can check the build without turning round.
+- [ ] Open the presenter window first, *then* take the deck fullscreen on
+      the projector. The replica lays out at the deck's window size and
+      reshapes when it changes; check it did.
 - [ ] Your own mark in `public/brand/`, or `logo.src: null` for none.
 
 **Present from `npm run preview`.** Never `file://`, never venue wifi. And

@@ -72,7 +72,7 @@ export interface TalkConfig {
   favicon: string
 
   /** Which theme the deck opens in — a filename in src/theme/, without the
-   *  extension: 'dark', 'lds-dark'. Every theme in that directory ships in
+   *  extension: 'dark-blue', 'dark-red'. Every theme in that directory ships in
    *  the bundle and any of them can be selected from the settings menu or
    *  with ?theme=<id>; this is only the one it STARTS in.
    *
@@ -95,7 +95,7 @@ export const TALK: TalkConfig = {
     tint: true,
   },
   favicon: 'brand/favicon.svg',
-  theme: 'dark',
+  theme: 'dark-blue',
 }
 
 /** The BroadcastChannel namespace. Explicit `channel` wins; otherwise the

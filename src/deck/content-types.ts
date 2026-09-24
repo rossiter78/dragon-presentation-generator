@@ -282,8 +282,35 @@ export function cue(cue: string): CueItem {
   return { kind: 'cue', cue }
 }
 
+/* --- pictures last --------------------------------------------------------
+   Words first, then every figure and graphic, in every section. A picture
+   that lands before the words it illustrates takes the room's eye from the
+   claim before the claim is made; and a figure sitting in the middle of a
+   run of lines in talk.ts is in the way of the words you edit most.
+
+   So the rule is enforced, not sorted. Beats follow the order items are
+   written, and a silent re-sort would put one order in the file and another
+   on the stage. Instead a line (or cue) after a picture throws at startup,
+   naming the section, and you move the picture to the end. */
+const isPicture = (item: Item) => item.kind === 'figure' || item.kind === 'graphic'
+
+function assertPicturesLast(meta: Omit<SectionMeta, 'beats'>) {
+  const items = meta.content.items
+  const first = items.findIndex(isPicture)
+  if (first === -1) return
+  const late = items.slice(first).find((item) => !isPicture(item))
+  if (late) {
+    throw new Error(
+      `section "${meta.id}": figures and graphics go LAST in items, after ` +
+        `every line — move them to the end. Found ${late.kind} ` +
+        `${late.cue} after a ${items[first].kind}.`,
+    )
+  }
+}
+
 /** Assembles a section and derives its beat list from its items. */
 export function section(meta: Omit<SectionMeta, 'beats'>): SectionMeta {
+  assertPicturesLast(meta)
   return {
     ...meta,
     beats: [

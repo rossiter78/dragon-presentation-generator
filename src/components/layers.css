@@ -14,13 +14,13 @@
   position: relative;
 }
 
+/* One piece fills the row; a split layer shares it equally, however many
+   pieces it has. */
 .cake__row {
   display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 0.75rem;
-}
-.cake__row--clients,
-.cake__row--surfaces {
-  grid-template-columns: 1fr 1fr;
 }
 
 /* --- a layer card ------------------------------------------------------- */
@@ -53,26 +53,6 @@
 }
 /* Note: opacity for [data-dimmed] is animated in LayerCake.tsx, not set
    here — motion's inline style would override a rule at this specificity. */
-
-.layer[data-role='logic'] {
-  background: var(--surface-2);
-  border-color: var(--line-strong);
-}
-/* The floor of the stack. Quieter than the logic layer above it: it is the
-   one box in the diagram nobody argues about. */
-.layer[data-role='data'] {
-  background: var(--surface-2);
-  border-color: var(--line-strong);
-  border-style: solid;
-  opacity: 0.92;
-}
-.layer[data-role='client'] {
-  border-style: dashed;
-}
-.layer[data-peer] {
-  border-color: var(--accent-400);
-  border-style: solid;
-}
 
 .layer__head {
   display: flex;
@@ -151,39 +131,8 @@
   background: var(--accent-fill);
 }
 
-/* --- the peer bracket --------------------------------------------------- */
-
-.cake__peer {
-  display: grid;
-  gap: 0.45rem;
-  justify-items: center;
-  padding: 0.15rem 0 0.35rem;
-}
-
-.cake__bracket {
-  width: min(100%, 60ch);
-  height: 10px;
-  border: 1px solid var(--accent-400);
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  opacity: 0.75;
-}
-
-.cake__peerText {
-  margin: 0;
-  text-align: center;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(0.95rem, 0.85rem + 0.6vw, 1.35rem);
-  color: var(--text);
-  max-width: 44ch;
-  text-wrap: balance;
-}
-
-
 @media (max-width: 760px) {
-  .cake__row--clients,
-  .cake__row--surfaces {
-    grid-template-columns: 1fr;
+  .cake__row {
+    grid-auto-flow: row;
   }
 }

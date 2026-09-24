@@ -5,7 +5,7 @@
    a token, and a theme is the file that defines them. That is what makes a
    theme a token set rather than a code change.
 
-   A theme imports this and then declares the tokens. See dark.css.
+   A theme imports this and then declares the tokens. See dark-blue.css.
 
    Fonts are loaded in main.tsx from @fontsource, which vendors the woff2
    files through the bundle. Nothing to drop in by hand, and no request to

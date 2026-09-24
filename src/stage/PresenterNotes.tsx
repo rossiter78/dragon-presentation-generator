@@ -12,7 +12,7 @@
    actually standing in.
    ========================================================================== */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SECTIONS } from '../content/talk'
 import { CHANNEL } from './channel'
 import type { StageSnapshot } from './StageProvider'
@@ -27,6 +27,69 @@ function clock(ms: number) {
   return `${m}:${s}`
 }
 
+/* The same bundle again, under ?mirror=1, which makes the deck a passenger:
+   it applies the snapshots the real deck broadcasts and drives nothing.
+   Built once, with the notes window's other flags (contrast, cadence) carried
+   over so the two decks are dressed alike. */
+const MIRROR_SRC = (() => {
+  const url = new URL(window.location.href)
+  url.searchParams.delete('notes')
+  url.searchParams.set('mirror', '1')
+  return url.toString()
+})()
+
+/**
+ * A small replica of the projector, for when you are facing the room and
+ * cannot see the screen behind you.
+ *
+ * The frame is laid out at the DECK's size — which the deck broadcasts —
+ * and scaled down to fit, so every clamp() and breakpoint resolves as it
+ * does on the projector. Letting the iframe reflow at thumbnail width would
+ * show you the phone layout, which is not what the room is looking at.
+ *
+ * It is not focusable and takes no pointer, so the arrow keys stay with the
+ * notes window and a stray click cannot land in the replica.
+ */
+function StageMirror({ viewport }: { viewport: StageSnapshot['viewport'] }) {
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const [boxWidth, setBoxWidth] = useState(0)
+
+  useEffect(() => {
+    const box = boxRef.current
+    if (!box) return
+    const observer = new ResizeObserver(([entry]) =>
+      setBoxWidth(entry.contentRect.width),
+    )
+    observer.observe(box)
+    return () => observer.disconnect()
+  }, [])
+
+  const scale = boxWidth / viewport.width
+
+  return (
+    <section className="notes__mirror">
+      <p className="notes__label">On the projector</p>
+      <div
+        ref={boxRef}
+        className="notes__mirrorBox"
+        style={{ aspectRatio: `${viewport.width} / ${viewport.height}` }}
+      >
+        <iframe
+          src={MIRROR_SRC}
+          title="Replica of the audience screen"
+          tabIndex={-1}
+          aria-hidden="true"
+          style={{
+            width: viewport.width,
+            height: viewport.height,
+            transform: `scale(${scale})`,
+          }}
+        />
+      </div>
+    </section>
+  )
+}
+
 export function PresenterNotes() {
   const [state, setState] = useState<StageSnapshot>({
     sectionIndex: 0,
@@ -34,6 +97,9 @@ export function PresenterNotes() {
     mode: 'present',
     startedAt: null,
     detail: null,
+    replayToken: 0,
+    // A projector guess until the deck's first snapshot says otherwise.
+    viewport: { width: 1920, height: 1080 },
   })
   const [now, setNow] = useState(Date.now())
   const [channel, setChannel] = useState<BroadcastChannel | null>(null)
@@ -191,6 +257,8 @@ export function PresenterNotes() {
           Arrow keys work in either window — whichever has focus.
         </span>
       </footer>
+
+      <StageMirror viewport={state.viewport} />
     </div>
   )
 }

@@ -197,3 +197,25 @@
   font-size: 0.92rem;
   color: var(--text);
 }
+
+/* The replica of the projector, under the Back / Next buttons. Small on
+   purpose: it answers "has it built yet, is the detail open", not "read the
+   slide". The iframe is laid out at the deck's full size and scaled into
+   this box from its top-left corner — see StageMirror in PresenterNotes. */
+.notes__mirror {
+  width: min(100%, 30rem);
+}
+.notes__mirrorBox {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--ink);
+}
+.notes__mirrorBox iframe {
+  position: absolute;
+  inset: 0 auto auto 0;
+  border: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}

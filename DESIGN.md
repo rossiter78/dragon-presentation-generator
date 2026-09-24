@@ -46,6 +46,14 @@ count this replaced.
 `?cadence=ms` tunes it live and survives a reload; `?cadence=0` builds every
 section whole on arrival, which is also what the PDF export captures with.
 
+**Pictures arrive last.** Within a section every line lands before any
+figure or graphic. This replaced an earlier rule that interleaving was a
+directing decision for the content file. In practice a picture arriving
+before its claim pulled the room's eye off the words, and a figure's options
+sitting between two lines got in the way of hand-editing the copy.
+`section()` enforces it rather than sorting silently, so the order in
+`talk.ts` is always the order on stage.
+
 **Do not** add a scroll-scrubbed animation (GSAP ScrollTrigger, or CSS
 `animation-timeline: view()` driving anything load-bearing). Ambient effects
 are fine; anything the argument depends on is a beat.
@@ -235,8 +243,8 @@ So **nothing is mounted on its beat.** `<Beat hold>` keeps the element in the
 layout from beat 0 and reveals it with opacity and transform, neither of
 which reflows. A component that draws itself — `LayerCake`, `ChatReplay` —
 owes the same guarantee by hand: render the element always, animate
-`opacity`, and never wrap a beat-gated element in `AnimatePresence`. The
-layer cake's peer bracket was the last offender at 36px.
+`opacity`, and never wrap a beat-gated element in `AnimatePresence`. A
+bracketed aside in an earlier layer cake was the last offender at 36px.
 
 `AnimatePresence` is still right for a **number-key expansion**, which is
 asked for, is not part of the cascade, and is expected to push content.
@@ -254,7 +262,7 @@ across all 27 sections.
 
 A theme is a token set and nothing else. No component picks a colour; if you
 find yourself adding one to a component, add a token instead. Two themes ship
-— `dark.css` (the default) and `lds-dark.css` (a real brand) — and no
+— `dark-blue.css` (the default) and `dark-red.css` (a real brand) — and no
 component knows which is loaded.
 
 Backgrounds are the ink lifted toward the accent's hue, never neutral black.
@@ -273,7 +281,7 @@ not apply, and derive a lifted ramp for anything read. Three rungs:
 | `--accent-400` | lifted to ≥ 4.5:1. Large text, UI borders, meaningful lines. |
 | `--accent-300` | lifted further, ≥ 6:1. Body text, inline emphasis. |
 
-`lds-dark.css` is the worked example of the awkward case: its brand red
+`dark-red.css` is the worked example of the awkward case: its brand red
 measures 3.17:1 on `--ink`, failing AA for body text *and* large text, so it
 genuinely cannot be used for type at all.
 
@@ -290,7 +298,7 @@ crush blacks; this is ninety seconds of insurance.
 
 This supersedes the original "one import in `main.tsx`, one swap" rule. That
 rule had a failure mode nobody saw coming: whichever theme `main.tsx` did not
-import was never parsed by anything, so `lds-dark.css` sat in the repo with an
+import was never parsed by anything, so `dark-red.css` sat in the repo with an
 unclosed comment — a hard `CssSyntaxError` — through a green build. It failed
 for the first person who tried to *use* the second theme, which is the worst
 possible person for it to fail for.
@@ -299,8 +307,8 @@ Every theme in `src/theme/` now ships in the bundle and scopes its tokens
 under a `data-theme` attribute:
 
 ```css
-:root[data-theme='lds-dark'] { … }
-:root[data-theme='lds-dark'][data-contrast='high'] { … }
+:root[data-theme='dark-red'] { … }
+:root[data-theme='dark-red'][data-contrast='high'] { … }
 ```
 
 `main.tsx` collects them with `import.meta.glob` rather than naming one, so
@@ -379,6 +387,45 @@ including Q&A is roughly 28 minutes of talk.
 relays over the channel, because a separate browser window has its own event
 loop and the deck's listener cannot see keys pressed in it. This was a real
 bug; `verify.mjs` guards it.
+
+**The notes carry a replica of the projector.** On stage you face the room,
+so the audience screen is behind you. Under Back / Next sits the deck again
+in an iframe under `?mirror=1` — a passenger that applies the real deck's
+snapshots and drives nothing — laid out at the deck's window size and scaled
+down, so it shows the projector's layout rather than a reflowed thumbnail.
+State, not pixels: screen capture would prompt for permission on every open
+and can pick the wrong screen. `verify.mjs` checks the replica stands on the
+deck's section. The window opens at the full height of the screen, since
+the replica sits under the notes and a fixed height cut it off.
+
+Each of these is a decision, not a style choice, and each looks like
+something to simplify:
+
+- **The passenger obeys `state` and nothing else.** `next` / `prev` /
+  `detail` / `replay` are the notes window's commands to the deck; two decks
+  obeying them would step twice.
+- **It scrolls by setting `scrollTop`, never `scrollIntoView`.** Across a
+  same-origin iframe, `scrollIntoView` scrolls every ancestor too, and the
+  notes window would jump to the replica each time the deck moved.
+- **Sections are not rendered until the first snapshot lands** (`synced`).
+  `ChatReplay` replays on a change of `replayToken`; mounted at 0, the first
+  sync would look like an Enter press. The gate also stops the replica
+  flashing the title slide, and makes the first scroll work — child effects
+  run before the provider's, so every section has registered by then.
+- **Laid out at the deck's size, then scaled.** At thumbnail width the
+  responsive layout is the phone layout, which is not what the room sees.
+  Hence `viewport` in the snapshot, re-sent on resize.
+- **Instant, not smooth.** A replica you glance at should already be there;
+  smooth scroll is also throttled in background windows.
+- **No focus, no pointer.** If the iframe took focus, arrow keys after a
+  click would go to the mirror, which ignores them, and the deck would stall.
+
+Known limits: it shows the deck, not a demo running in another app. Timed
+animations (the chat replay) start in step and then run on their own. `C`
+toggled live is not mirrored — contrast is a document attribute, not
+provider state — though `?contrast=high` in the URL is carried over. In read
+mode the replica snaps to the top of the active section rather than following
+free scroll.
 
 ---
 
@@ -508,10 +555,11 @@ a scaled graphic without knowing the property exists.
   diffs the outline against the deck and reports drift covers the real need
   without the trap.
 
-- **Screen mirror in the presenter window.** Slidev's presenter view can
-  capture another monitor and show it inline, so you can watch a terminal or
-  a phone while still seeing your notes. Worth copying for any slide with a
-  live demo.
+- **Screen capture in the presenter window.** Slidev's presenter view can
+  capture another *monitor* and show it inline, so you can watch a terminal
+  or a phone while still seeing your notes. Worth copying for any slide with
+  a live demo. Not the same thing as the replica in §10: that mirrors the
+  deck itself, from state, and does nothing for a demo in another app.
 
 - **A notes editor route.** Batch-editing every section's notes on one screen
   is cheap to imitate when the notes already live in one file.

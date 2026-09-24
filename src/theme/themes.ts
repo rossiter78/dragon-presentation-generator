@@ -22,7 +22,7 @@
    each; a talk with ten themes still costs less than one woff2. */
 const files = import.meta.glob('./[!_]*.css', { eager: true })
 
-/** Filename without extension: 'dark', 'lds-dark'. This is the id in
+/** Filename without extension: 'dark-blue', 'dark-red'. This is the id in
  *  talk.config.ts, in ?theme=, and in the CSS selector. */
 function idOf(path: string): string {
   return path.replace(/^\.\//, '').replace(/\.css$/, '')
@@ -32,12 +32,11 @@ function idOf(path: string): string {
    actually wrong — an acronym, a proper noun — not for every theme: an entry
    here is a hand-maintained string, which is the thing this file otherwise
    avoids. Unlisted ids fall through to the derivation below, which is the
-   expected case. */
-const LABELS: Record<string, string> = {
-  'lds-dark': 'LDS dark',
-}
+   expected case — every shipped theme derives its label, so this is empty.
+   An entry looks like  'acme-dark': 'ACME dark'. */
+const LABELS: Record<string, string> = {}
 
-/** 'lds-dark' → 'Lds dark' → overridden to 'LDS dark'. */
+/** 'dark-red' → 'Dark red'; a LABELS entry overrides it. */
 function labelOf(id: string): string {
   return LABELS[id] ?? id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())
 }

@@ -41,6 +41,9 @@ Specifically:
 - **Beats are derived, never counted.** `section()` builds the beat list from
   the items. Nothing mirrors a count by hand — not the rail, not the
   presenter window, not the verifier.
+- **Pictures last.** In every section, figures and graphics come after all
+  the lines — in `items` and therefore on stage. `section()` throws on a
+  line after a picture; move the picture, do not relax the check.
 - **Fragments on screen, sentences in `notes`.** Six words good, twelve the
   ceiling. This is the rule most worth defending when it is inconvenient.
 - **Keyboard only.** No hover affordance, no pointer-only control. A cursor

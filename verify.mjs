@@ -38,7 +38,15 @@ await page.goto(BASE, { waitUntil: 'networkidle' })
 await page.waitForTimeout(400)
 
 const deck = await page.evaluate(() => window.__deck)
-if (!deck) throw new Error('window.__deck missing — is main.tsx publishing it?')
+// The page's own error first: a content rule that throws at startup (an
+// unknown renderer, a picture before a line) is why __deck is missing, and
+// it names the section at fault.
+if (!deck)
+  throw new Error(
+    errors.length
+      ? `the deck failed to start:\n  ${errors.join('\n  ')}`
+      : 'window.__deck missing — is main.tsx publishing it?',
+  )
 
 /* SAY WHICH DECK WE FOUND, before asserting anything about it.
    `preview` serves the last BUILD, and if you have two decks on one machine
@@ -193,6 +201,17 @@ await notes.waitForTimeout(1100)
 const titleAfter = (await notes.locator('.notes__title').textContent())?.trim()
 await notes.screenshot({ path: `${OUT}/92-presenter-notes.png` })
 
+/* The replica of the projector, under the notes' Back / Next. It is the deck
+   again under ?mirror=1, following the broadcasts — so it must be standing on
+   the section the notes say we are on, and must not have stepped a second
+   deck of its own (which would put the two a section apart). */
+const mirror = notes.frameLocator('.notes__mirror iframe')
+const mirrorTitle = (
+  await mirror.locator('section[data-active]').getAttribute('aria-label')
+)?.trim()
+await notes.locator('.notes__mirror').scrollIntoViewIfNeeded()
+await notes.screenshot({ path: `${OUT}/94-presenter-mirror.png` })
+
 // The demo banner only exists on the slides where a demo happens. Walk the
 // deck FROM THE NOTES WINDOW until it says we are standing on one, which
 // also exercises the relay under repeated keypresses.
@@ -259,6 +278,10 @@ const checks = [
   [
     `arrow key in notes window advances the deck (${titleBefore} → ${titleAfter})`,
     titleBefore !== titleAfter,
+  ],
+  [
+    `the replica in the notes window follows the deck (${mirrorTitle})`,
+    mirrorTitle === titleAfter,
   ],
   ...(demoSection
     ? [

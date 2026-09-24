@@ -77,7 +77,7 @@ export function Body({ meta }: { meta: SectionMeta }) {
 
         {/* Furniture, not a beat: no <Beat> wrapper, so it is simply there
             from the moment you arrive. BASE_URL rather than an import — it
-            lives in public/lds/ with the other brand assets. */}
+            lives in public/brand/ with the other brand assets. */}
         {meta.logo && (
           <img
             className="body__logo"

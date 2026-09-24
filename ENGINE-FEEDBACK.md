@@ -14,14 +14,14 @@ this session, each with a repro and a concrete fix. Delete it once acted on
 
 ## Part A — defects (things that are just wrong)
 
-### 1. `lds-dark.css` didn't compile — the second "worked example" theme was never built
+### 1. `dark-red.css` didn't compile — the second "worked example" theme was never built
 
-`src/theme/lds-dark.css` ended mid-comment at line 118 (`unclosed comment`,
+`src/theme/dark-red.css` ended mid-comment at line 118 (`unclosed comment`,
 `CssSyntaxError`). The moment I pointed `main.tsx` at it, `npm run build`
 failed. The token set itself was complete — only the trailing comment block
 was truncated — so this reads as a copy-paste or save error that nothing
 ever caught, because **nothing has ever built with this theme active**. The
-default (`dark.css`) is the only theme this repo's own tooling exercises.
+default (`dark-blue.css`) is the only theme this repo's own tooling exercises.
 
 Fix I applied: closed the comment. Real fix: add a CI/pretest step that
 builds against every file in `src/theme/`, not just whichever one
@@ -229,11 +229,11 @@ project):
 ### 11. Brand placeholder SVGs hardcode a colour, so they go off-brand the instant you switch themes
 
 `public/brand/mark.svg` / `favicon.svg` ship with `fill="#2F6FED"` baked
-in — `dark.css`'s `--brand` blue, literally. `Chrome.tsx` loads the mark
+in — `dark-blue.css`'s `--brand` blue, literally. `Chrome.tsx` loads the mark
 via `<img src="...">`
 ([`src/stage/Chrome.tsx:176-179`](src/stage/Chrome.tsx:176)), so the SVG is an opaque raster
 as far as CSS is concerned — it cannot inherit `currentColor` or any theme
-token even if the file used one. Swap `main.tsx` to `lds-dark.css` (all
+token even if the file used one. Swap `main.tsx` to `dark-red.css` (all
 reds) and the corner mark stays defaultly-blue until someone manually
 redraws or recolors the asset.
 
