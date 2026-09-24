@@ -229,6 +229,7 @@ every few seconds.
 src/
   content/talk.ts        ← YOUR TALK. Everything the audience reads.
   content/*.png          ← your screenshots
+  content/logos/         ← your logos and favicon (git-ignored; see its README)
   deck/
     talk.config.ts       ← YOUR NAMEPLATE. Title, slug, logo, theme.
     content-types.ts     the contract: Beat, LineItem, section(), line()…
@@ -241,7 +242,6 @@ src/
     dark-red.css         a second worked example, from a real brand
                          every theme here ships; pick one in the settings
                          menu, with ?theme=<id>, or as `theme` in talk.config
-public/brand/            your mark and favicon (placeholders ship)
 verify.mjs               walks every beat and asserts what rendered
 export-pdf.mjs           one page per section, via real Chromium
 DeployToHereNow.mjs      publishes dist/ to a here.now site
@@ -293,7 +293,9 @@ npm run verify         # in a second terminal — walks every beat
 - [ ] Open the presenter window first, *then* take the deck fullscreen on
       the projector. The replica lays out at the deck's window size and
       reshapes when it changes; check it did.
-- [ ] Your own mark in `public/brand/`, or `logo.src: null` for none.
+- [ ] Your logos in `src/content/logos/` (symbol only, and one with the
+      company name), pointed at in `talk.config.ts` — or `logo.src: null`
+      for none. The folder is git-ignored apart from the placeholders.
 
 **Present from `npm run preview`.** Never `file://`, never venue wifi. And
 build first — preview serves whatever was last built.
@@ -373,6 +375,6 @@ More, with the reasoning, in [DESIGN.md](DESIGN.md).
 
 MIT — see [LICENSE](LICENSE).
 
-The brand assets in `public/brand/` are placeholders drawn for this repo. A
+The `placeholder-*.svg` files in `src/content/logos/` are placeholders drawn for this repo. A
 logo is a trademark and your repo's licence does not cover it: if you publish
 a talk built on this, use a mark you own.

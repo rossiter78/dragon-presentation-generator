@@ -97,7 +97,7 @@ const isNotes = params.get('notes') === '1'
 document.title = isNotes ? `${TALK.title} — notes` : TALK.title
 
 const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
-if (icon) icon.href = `${import.meta.env.BASE_URL}${TALK.favicon}`
+if (icon) icon.href = TALK.favicon
 
 /* The theme, before first paint. ?theme= wins over the talk's own choice, so
    you can show the same deck in a second brand without editing anything —

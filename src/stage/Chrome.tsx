@@ -195,12 +195,12 @@ function ExportChip() {
   )
 }
 
-/* Vendored, never hot-linked — see public/brand/README.md for why. If the
+/* Vendored, never hot-linked — see src/content/logos/README.md for why. If the
    file is not there the mark simply does not render; the deck must NOT reach
    out to any network to draw itself. A remote fallback is a dependency that
    fires exactly when you forgot the file, which is exactly when you are
    standing in front of a room on someone else's wifi. */
-const LOGO = TALK.logo.src ? `${import.meta.env.BASE_URL}${TALK.logo.src}` : null
+const LOGO = TALK.logo.src
 
 /**
  * The corner mark, in the theme's colour or in its own.
@@ -216,7 +216,7 @@ const LOGO = TALK.logo.src ? `${import.meta.env.BASE_URL}${TALK.logo.src}` : nul
  * and renders exactly as drawn.
  *
  * Both paths PROBE THE FILE FIRST and render nothing if it is missing, which
- * is the contract public/brand/README.md states. It earns its place twice.
+ * is the contract src/content/logos/README.md states. It earns its place twice.
  * It replaces the <img onError> this used to rely on, which a <span> cannot
  * have — and it settles what a mask does when its image 404s, which the
  * engines need not agree about: Chromium paints nothing (tested), but

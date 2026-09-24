@@ -47,7 +47,7 @@ if (!urlArg) {
 
 const URL = urlArg
 const OUT = outArg || 'src/content/qr.svg'
-const MARK = markArg || 'public/brand/mark.svg'
+const MARK = markArg || 'src/content/logos/placeholder-mark.svg'
 
 /** Fraction of the code's width the white logo panel occupies. 0.22 keeps
  *  the covered area near 7% of the data modules, well inside Q's 25%. */

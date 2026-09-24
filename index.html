@@ -12,8 +12,10 @@
          (TALK.favicon, TALK.title) — this file is engine, and the talk's name
          does not live here. They are set at all so the tab has something to
          show for the one frame before the bundle runs. Editing them per talk
-         is the scavenger hunt talk.config.ts exists to end. -->
-    <link rel="icon" href="./brand/favicon.svg" />
+         is the scavenger hunt talk.config.ts exists to end. The icon is an
+         empty data URL: it requests nothing, and the real one is an import
+         that only the bundle knows the URL of. -->
+    <link rel="icon" href="data:," />
     <title>Presentation</title>
   </head>
   <body>

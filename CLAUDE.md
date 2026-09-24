@@ -14,7 +14,7 @@ reading it.
 | `src/stage/` — beats, keyboard, modes, presenter window | `src/content/talk.ts` |
 | `src/deck/` — the content contract, the registry, the config shape | `src/content/*.png` |
 | `src/components/` — renderers, patterns, graphics | `src/deck/talk.config.ts` values |
-| `src/theme/` — token sets | `public/brand/` |
+| `src/theme/` — token sets | `src/content/logos/` |
 | `verify.mjs`, `export-pdf.mjs` | |
 
 **The test for any change:** could a different talk, about a different

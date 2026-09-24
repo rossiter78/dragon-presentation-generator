@@ -436,7 +436,8 @@ modules do not load there) and never a hosted URL on venue wifi.
 
 Fonts are self-hosted through `@fontsource` and bundled at build time — no
 `<link>` to Google Fonts, no request to anyone's server when the deck loads.
-The brand mark is vendored in `public/brand/`.
+The brand mark is vendored in `src/content/logos/` and referenced by URL, so it is
+bundled into `dist/` with everything else.
 
 The deck must NEVER reach out to a network to draw itself. An earlier version
 fell back to a logo URL on the author's website when the local file was

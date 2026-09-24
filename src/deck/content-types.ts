@@ -212,7 +212,8 @@ export interface SectionMeta {
   /** A logo at the foot of the words column. Present from beat 0 rather
    *  than revealed — it is furniture, not an argument, and a brand mark that
    *  animates in is a brand mark competing with the point being made.
-   *  Served from public/, so the path is a URL, not an import. */
+   *  `src` is an imported file's URL, like a figure's — put the file in
+   *  src/content/logos/ and import it in talk.ts. */
   logo?: { src: string; alt: string }
 }
 

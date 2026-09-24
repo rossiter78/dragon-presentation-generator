@@ -23,7 +23,7 @@ if (!srcArg) {
 }
 
 const SRC = srcArg
-const OUT = outArg || 'public/brand/wordmark-dark.svg'
+const OUT = outArg || 'src/content/logos/wordmark-dark.svg'
 
 /** The colour to replace. Black in most wordmarks; pass a third argument if
  *  yours draws its lettering in something else. */

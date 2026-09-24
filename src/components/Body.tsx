@@ -76,12 +76,12 @@ export function Body({ meta }: { meta: SectionMeta }) {
         </div>
 
         {/* Furniture, not a beat: no <Beat> wrapper, so it is simply there
-            from the moment you arrive. BASE_URL rather than an import — it
-            lives in public/brand/ with the other brand assets. */}
+            from the moment you arrive. `src` is already a URL: talk.ts
+            imports the file, the same way it imports a figure. */}
         {meta.logo && (
           <img
             className="body__logo"
-            src={`${import.meta.env.BASE_URL}${meta.logo.src}`}
+            src={meta.logo.src}
             alt={meta.logo.alt}
           />
         )}

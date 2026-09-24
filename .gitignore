@@ -3,3 +3,9 @@ dist
 shots*
 *.tsbuildinfo
 .DS_Store
+
+# Your own logos. A logo is a trademark, not code: keep it out of the repo.
+# The README stays tracked so a fresh clone knows where logos go.
+src/content/logos/*
+!src/content/logos/README.md
+!src/content/logos/placeholder-*.svg

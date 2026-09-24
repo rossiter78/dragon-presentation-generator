@@ -10,7 +10,19 @@
 
    NOTHING ABOUT THE ARGUMENT LIVES HERE. Words the audience reads go in
    src/content/. This is the nameplate, not the talk.
+
+   The logo files live in src/content/logos/ with the rest of the talk's own
+   material. They are referenced as `new URL('…', import.meta.url)`, which
+   Vite recognises and bundles into dist/ — and which is still plain
+   JavaScript, because Node loads this file too (vite.config.ts reads the
+   slug through the PDF plugin) and Node cannot `import` an .svg.
+   See src/content/logos/README.md.
    ========================================================================== */
+
+// Point these at your own files in src/content/logos/. Keep the
+// `new URL(<literal>, import.meta.url)` shape: Vite only bundles a literal.
+const mark = new URL('../content/logos/placeholder-mark.svg', import.meta.url).href
+const favicon = new URL('../content/logos/placeholder-favicon.svg', import.meta.url).href
 
 export interface TalkConfig {
   /** Browser tab and PDF metadata. Applied to `document.title` at startup
@@ -39,14 +51,13 @@ export interface TalkConfig {
    *  two builds from the same port at different times of day. */
   channel?: string
 
-  /** The mark in the bottom-left corner of every slide, served from public/.
-   *  Path is relative to public/ — no leading slash, because the deck is
-   *  built with a relative base and may be served from a subdirectory.
+  /** The mark in the bottom-left corner of every slide. `src` is a bundled
+   *  file's URL (see `mark` at the top), not a path you type.
    *
    *  Set `src` to null for an unbranded deck. If the file is missing the
    *  mark simply does not render: the deck NEVER reaches out to the network
    *  to draw itself, which is the rule that keeps it presentable offline.
-   *  See public/brand/README.md. */
+   *  See src/content/logos/README.md. */
   logo: {
     src: string | null
     alt: string
@@ -59,7 +70,7 @@ export interface TalkConfig {
      *  tint flattens it. It is drawn as a CSS mask, which reads only the
      *  file's ALPHA — so a two-colour mark masks to its silhouette and loses
      *  the inner shapes, unless those shapes are real holes. The placeholder
-     *  in public/brand/ is drawn that way on purpose and sets this true; a
+     *  in src/content/logos/ is drawn that way on purpose and sets this true; a
      *  real multi-colour logo should leave it off.
      *
      *  Square marks only. The corner box is square, and a wide wordmark will
@@ -67,7 +78,7 @@ export interface TalkConfig {
     tint?: boolean
   }
 
-  /** Favicon, relative to public/. Shows in the tab and in the presenter
+  /** Favicon — a bundled file's URL, like `logo.src`. Shows in the tab and in the presenter
    *  window, which is the only place you will actually notice it. */
   favicon: string
 
@@ -87,14 +98,14 @@ export const TALK: TalkConfig = {
   title: 'Dragon Presentation Generator',
   slug: 'dragon-presentation-generator',
   logo: {
-    src: 'brand/mark.svg',
+    src: mark,
     alt: 'Dragon Presentation Generator',
     // The shipped mark is a placeholder belonging to nobody, so it follows
     // the theme rather than pinning the deck to one colour. Drop your own
     // logo in and turn this off.
     tint: true,
   },
-  favicon: 'brand/favicon.svg',
+  favicon,
   theme: 'dark-blue',
 }
 
