@@ -2,6 +2,13 @@
    Stage chrome — the scroller, the snap sections, the rail, the frame.
    ========================================================================== */
 
+/* Per-window text size — see scale.ts. Every window sets its own
+   --text-scale, so the deck, its replica and the presenter window can each
+   be sized for the screen they are on. Only this rule reads it. */
+:root {
+  font-size: calc(100% * var(--text-scale, 1));
+}
+
 .scroller {
   height: 100dvh;
   overflow-y: auto;
@@ -171,22 +178,28 @@
   background: var(--accent-400);
 }
 
-/* --- frame -------------------------------------------------------------- */
+/* --- frame --------------------------------------------------------------
+   Sized in px, not rem, on purpose. The menu holds the slider that sets the
+   deck's rem (--text-scale), and a control sized in the unit it changes
+   rescales itself mid-drag — the menu grows, and the thumb slides out from
+   under the pointer. So the corners stay put, the same size at every text
+   size; the px here are exactly what the rem were at 100%, and the side
+   offset is the gutter's own clamp with its rem ends pinned. */
 
 .chrome {
   position: fixed;
   z-index: 30;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 .chrome--brand {
-  left: var(--gutter);
-  bottom: 1.5rem;
+  left: clamp(24px, 5vw, 96px);
+  bottom: 24px;
 }
 .chrome--tools {
-  right: var(--gutter);
-  bottom: 1.5rem;
+  right: clamp(24px, 5vw, 96px);
+  bottom: 24px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -215,12 +228,12 @@
   all: unset;
   cursor: pointer;
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: 11.2px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
-  padding: 0.35rem 0.7rem;
+  padding: 5.6px 11.2px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgb(20 28 36 / 70%);
@@ -234,7 +247,7 @@
 /* `all: unset` leaves the chip inline, which will not centre an icon —
    these carry a glyph rather than a word, so they centre explicitly. */
 .chip--ghost {
-  width: 1.5rem;
+  width: 24px;
   padding-inline: 0;
   display: inline-flex;
   align-items: center;
@@ -253,8 +266,8 @@
 
 .chip__icon {
   display: block;
-  width: 0.85rem;
-  height: 0.65rem;
+  width: 13.6px;
+  height: 10.4px;
 }
 
 /* The menu behind the hamburger: settings first, then the key legend.
@@ -262,44 +275,48 @@
    the bottom-right corner of a projected image. */
 .menu {
   position: absolute;
-  bottom: 2.6rem;
+  bottom: 41.6px;
   right: 0;
-  width: 17rem;
-  padding: 0.9rem 1rem;
+  width: 272px;
+  /* Four settings and the key legend, scaled up on a short projector, run
+     taller than the screen. Scroll inside rather than off the top. */
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  padding: 14.4px 16px;
   display: grid;
-  gap: 0.9rem;
+  gap: 14.4px;
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  font-size: 0.8rem;
+  font-size: 12.8px;
   color: var(--text-secondary);
   box-shadow: 0 10px 30px rgb(0 0 0 / 45%);
 }
 
 .menu__keys {
   margin: 0;
-  padding: 0.9rem 0 0;
+  padding: 14.4px 0 0;
   border-top: 1px solid var(--line);
   list-style: none;
   display: grid;
-  gap: 0.4rem;
+  gap: 6.4px;
   white-space: nowrap;
 }
 
 .menu__setting {
   display: grid;
-  gap: 0.35rem;
+  gap: 5.6px;
 }
 .menu__settingHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
 }
 .menu__settingHead label {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 11.2px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
@@ -307,7 +324,7 @@
 .menu__reset {
   all: unset;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 11.2px;
   color: var(--accent-300);
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -323,7 +340,7 @@
   appearance: none;
   width: 100%;
   height: 4px;
-  margin: 0.3rem 0;
+  margin: 4.8px 0;
   border-radius: 999px;
   background: var(--line-strong);
   cursor: pointer;
@@ -356,18 +373,18 @@
 .menu__select {
   appearance: none;
   width: 100%;
-  padding: 0.4rem 1.8rem 0.4rem 0.6rem;
+  padding: 6.4px 28.8px 6.4px 9.6px;
   border: 1px solid var(--line-strong);
   border-radius: 6px;
   background-color: var(--surface-3);
   background-image: linear-gradient(45deg, transparent 50%, currentcolor 50%),
     linear-gradient(135deg, currentcolor 50%, transparent 50%);
-  background-position: right 0.85rem center, right 0.6rem center;
+  background-position: right 13.6px center, right 9.6px center;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 0.78rem;
+  font-size: 12.48px;
   cursor: pointer;
 }
 .menu__select:focus-visible {
@@ -384,7 +401,7 @@
 .menu__scale {
   display: flex;
   justify-content: space-between;
-  font-size: 0.65rem;
+  font-size: 10.4px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -392,7 +409,7 @@
 .menu__value {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 11.52px;
   color: var(--text-secondary);
 }
 kbd {
@@ -406,6 +423,12 @@ kbd {
   background: var(--surface-3);
   color: var(--text);
   font-size: 0.72rem;
+}
+/* The same key caps, at the menu's fixed size — see the frame note above. */
+.menu kbd {
+  min-width: 24px;
+  padding: 0.8px 5.6px;
+  font-size: 11.52px;
 }
 
 /* Hide the rail and frame while printing / exporting to PDF. */

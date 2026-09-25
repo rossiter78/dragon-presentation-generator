@@ -81,6 +81,10 @@ URL flags, all of which survive a reload:
 - `?theme=<id>` — any theme in `src/theme/`, by filename. Also a dropdown in
   the ☰ menu; the deck starts in whatever `talk.config.ts` names.
 - `?cadence=ms` — how fast a section builds. Default 250; `0` is instant.
+- `?scale=` / `?notesScale=` — text size in percent (70–150) for the deck and
+  the presenter window, separately. Set them with the two sliders in the ☰
+  menu; the notes one is also in the presenter window. Browser zoom cannot
+  do this: it is per site, so zooming one window zooms both.
 - `?mode=read` / `?notes=1` — read mode and the presenter window directly.
 - `?mirror=1` — the deck as a passenger: follows the real deck, drives
   nothing. The presenter window embeds it as its replica of the projector;
@@ -288,8 +292,8 @@ npm run verify         # in a second terminal — walks every beat
 - [ ] Budgets totalled against the slot. A 40-minute slot is about 28 minutes
       of talk.
 - [ ] Rehearsed against the presenter window (`S`), on two displays, with the
-      clock running. Under Back / Next it shows a small replica of the
-      projector, so you can check the build without turning round.
+      clock running. Beside the notes it shows a replica of the projector,
+      so you can check the build without turning round.
 - [ ] Open the presenter window first, *then* take the deck fullscreen on
       the projector. The replica lays out at the deck's window size and
       reshapes when it changes; check it did.

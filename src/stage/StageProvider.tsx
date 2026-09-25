@@ -43,6 +43,14 @@ import { SECTIONS } from '../content/talk'
 import type { SectionMeta } from '../deck/content-types'
 import { CHANNEL } from './channel'
 import { TALK } from '../deck/talk.config'
+import {
+  applyScale,
+  clampScale,
+  DECK_SCALE_PARAM,
+  NOTES_SCALE_PARAM,
+  readScale,
+  writeScaleParam,
+} from './scale'
 
 export type Mode = 'present' | 'read'
 
@@ -71,6 +79,9 @@ export interface StageSnapshot {
   /** The deck window's CSS size, so the mirror can lay out at the projector's
    *  size and scale down, rather than reflowing into a thumbnail. */
   viewport: { width: number; height: number }
+  /** The deck's text size, percent. The mirror applies it to itself so the
+   *  replica wraps its lines where the projector does. */
+  scale: number
 }
 
 /** `?mirror=1` is the deck as a passenger — the small replica inside the
@@ -96,6 +107,13 @@ interface StageValue {
   setCadence: (ms: number) => void
   /** The compiled-in default, for a "reset" affordance in the menu. */
   defaultCadence: number
+  /** This window's text size, percent — see scale.ts. */
+  scale: number
+  setScale: (pct: number) => void
+  /** The presenter window's text size. Held here so the menu can set it,
+   *  and relayed to that window over the channel. */
+  notesScale: number
+  setNotesScale: (pct: number) => void
   scrollerRef: RefObject<HTMLDivElement | null>
   registerSection: (index: number, el: HTMLElement | null) => void
   next: () => void
@@ -125,6 +143,14 @@ export function StageProvider({ children }: { children: ReactNode }) {
     const ms = Number(raw)
     return Number.isFinite(ms) && ms >= 0 ? ms : CADENCE_MS
   })
+  /* Two sizes, because the deck and the notes window are usually on screens
+     of very different resolution, and browser zoom cannot tell them apart
+     (it is per origin). The deck holds both so there is one place each is
+     persisted: the deck's URL, which the notes window is opened from. */
+  const [scale, setScaleState] = useState(() => readScale(DECK_SCALE_PARAM))
+  const [notesScale, setNotesScaleState] = useState(() =>
+    readScale(NOTES_SCALE_PARAM),
+  )
   const [sectionIndex, setSectionIndex] = useState(0)
   const [beat, setBeat] = useState(0)
   const [startedAt, setStartedAt] = useState<number | null>(null)
@@ -207,6 +233,23 @@ export function StageProvider({ children }: { children: ReactNode }) {
     if (clamped === CADENCE_MS) url.searchParams.delete('cadence')
     else url.searchParams.set('cadence', String(clamped))
     window.history.replaceState(null, '', url)
+  }, [])
+
+  const setScale = useCallback((pct: number) => {
+    const clamped = clampScale(pct)
+    setScaleState(clamped)
+    writeScaleParam(DECK_SCALE_PARAM, clamped)
+  }, [])
+
+  /* Set from the menu here: tell the notes window. The notes window's own
+     slider comes back in through the channel handler below, which records
+     it WITHOUT re-posting — a relay that echoed would fight a drag in
+     progress, snapping the thumb back to a value a message behind. */
+  const setNotesScale = useCallback((pct: number) => {
+    const clamped = clampScale(pct)
+    setNotesScaleState(clamped)
+    writeScaleParam(NOTES_SCALE_PARAM, clamped)
+    channel.current?.postMessage({ type: 'notesScale', value: clamped })
   }, [])
 
   /* --- the cadence ------------------------------------------------------
@@ -342,9 +385,10 @@ export function StageProvider({ children }: { children: ReactNode }) {
         detail,
         replayToken,
         viewport,
+        scale,
       } satisfies StageSnapshot,
     })
-  }, [sectionIndex, beat, mode, startedAt, detail, replayToken, viewport])
+  }, [sectionIndex, beat, mode, startedAt, detail, replayToken, viewport, scale])
 
   // The replica is laid out at the deck's size, so a resize — going
   // fullscreen on the projector, most of all — has to reach it.
@@ -358,8 +402,8 @@ export function StageProvider({ children }: { children: ReactNode }) {
 
   // Handlers change every beat; the channel must not. Keep the live versions
   // in a ref so the socket is opened exactly once.
-  const handlers = useRef({ next, prev, publish })
-  handlers.current = { next, prev, publish }
+  const handlers = useRef({ next, prev, publish, notesScale })
+  handlers.current = { next, prev, publish, notesScale }
 
   useEffect(() => {
     const ch = new BroadcastChannel(CHANNEL)
@@ -376,6 +420,7 @@ export function StageProvider({ children }: { children: ReactNode }) {
         setMode(s.mode)
         setDetail(s.detail)
         setReplayToken(s.replayToken)
+        setScaleState(s.scale)
         setSynced(true)
       }
       ch.postMessage({ type: 'hello' }) // ask the deck for where it is now
@@ -389,7 +434,16 @@ export function StageProvider({ children }: { children: ReactNode }) {
       switch (e.data?.type) {
         case 'hello':
           handlers.current.publish() // notes window just opened
+          // Its size too, which is not in the snapshot — see setNotesScale.
+          ch.postMessage({ type: 'notesScale', value: handlers.current.notesScale })
           break
+        case 'notesScale': {
+          // Dragged in the notes window. Record it; do not echo it back.
+          const pct = clampScale(Number(e.data.value))
+          setNotesScaleState(pct)
+          writeScaleParam(NOTES_SCALE_PARAM, pct)
+          break
+        }
         case 'next':
           handlers.current.next()
           break
@@ -448,7 +502,13 @@ export function StageProvider({ children }: { children: ReactNode }) {
     const top =
       el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop
     root.scrollTo({ top, behavior: 'instant' })
-  }, [sectionIndex, synced])
+    // `scale` too: resizing the text moves every section's offset, and the
+    // replica would otherwise be left standing between two of them.
+  }, [sectionIndex, synced, scale])
+
+  useEffect(() => {
+    applyScale(scale)
+  }, [scale])
 
   useEffect(() => {
     document.documentElement.dataset.mode = mode
@@ -473,6 +533,10 @@ export function StageProvider({ children }: { children: ReactNode }) {
       cadence,
       setCadence,
       defaultCadence: CADENCE_MS,
+      scale,
+      setScale,
+      notesScale,
+      setNotesScale,
       scrollerRef,
       registerSection,
       next,
@@ -488,6 +552,10 @@ export function StageProvider({ children }: { children: ReactNode }) {
       replayToken,
       cadence,
       setCadence,
+      scale,
+      setScale,
+      notesScale,
+      setNotesScale,
       registerSection,
       next,
       prev,
@@ -540,17 +608,18 @@ export function openPresenterWindow() {
      rather than spawning another. The name is per-talk for the same reason
      the channel is: two decks on one origin must not share a window.
 
-     Full screen height, because the replica of the projector sits at the
-     bottom, under the notes, and a window that cuts it off hides the one
-     thing you opened it to glance at. A fixed height was tried (760) and
-     lost the replica on every section; how tall the notes run is up to the
-     talk, so ask the screen, not a constant. Placed at the screen's own
-     origin (`availLeft` is non-standard but in every engine that matters)
-     so the full height fits rather than being clamped short. */
+     The whole screen. It was sized as a small window once (1100 wide), but
+     on the night it is a display of its own — the laptop, with the deck on
+     the projector — so it is laid out wide, the replica beside the notes,
+     and opening it at the screen's size saves maximising it by hand. A
+     fixed height was tried before (760) and lost the replica; ask the
+     screen, not a constant. Placed at the screen's own origin (`availLeft`
+     is non-standard but in every engine that matters) so the full size
+     fits rather than being clamped short. */
   const { availWidth, availHeight } = window.screen
   const origin = window.screen as Screen & { availLeft?: number; availTop?: number }
   const features = [
-    `width=${Math.min(1100, availWidth)}`,
+    `width=${availWidth}`,
     `height=${availHeight}`,
     `left=${origin.availLeft ?? 0}`,
     `top=${origin.availTop ?? 0}`,

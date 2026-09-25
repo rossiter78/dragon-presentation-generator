@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { openPresenterWindow, useStage } from './StageProvider'
+import { ScaleControl } from './ScaleControl'
 import { PDF_FILENAME, TALK } from '../deck/talk.config'
 import { applyTheme, THEMES } from '../theme/themes'
 
@@ -259,7 +260,7 @@ function BrandMark() {
  * must never compete with the content on a projector.
  */
 export function Chrome() {
-  const { mode, setMode } = useStage()
+  const { mode, setMode, scale, setScale, notesScale, setNotesScale } = useStage()
   const [menuOpen, setMenuOpen] = useState(false)
   const toolsRef = useRef<HTMLDivElement | null>(null)
 
@@ -308,6 +309,21 @@ export function Chrome() {
         {menuOpen && (
           <div className="menu" role="dialog" aria-label="Settings and keys">
             <CadenceControl />
+            {/* Two sizes, one per screen — see scale.ts for why browser zoom
+                cannot do this. The notes one is also in the notes window,
+                so it can be set on the screen it changes. */}
+            <ScaleControl
+              id="deck-scale"
+              label="Slide text size"
+              value={scale}
+              onChange={setScale}
+            />
+            <ScaleControl
+              id="notes-scale"
+              label="Notes text size"
+              value={notesScale}
+              onChange={setNotesScale}
+            />
             <ThemeControl />
 
             <ul className="menu__keys">

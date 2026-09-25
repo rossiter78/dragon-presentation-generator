@@ -96,8 +96,9 @@ not, and giving it a key would waste one.
 
 The settings menu behind the hamburger is the same category, and it is worth
 naming as a surface rather than as a series of exceptions: it is **pre-flight,
-not stage**. The build-speed slider and the theme picker are both things you
-set with a mouse before anyone is watching, and neither has a key. The test
+not stage**. The build-speed slider, the two text-size sliders and the theme
+picker are all things you set with a mouse before anyone is watching, and
+none has a key. The test
 is not "is there a pointer path" but "does the room watch you do it" — the
 contrast toggle is watched and therefore keyed, everything in that menu is
 not. What the rule forbids is a pointer path to *the argument*: expanding a
@@ -389,14 +390,24 @@ loop and the deck's listener cannot see keys pressed in it. This was a real
 bug; `verify.mjs` guards it.
 
 **The notes carry a replica of the projector.** On stage you face the room,
-so the audience screen is behind you. Under Back / Next sits the deck again
+so the audience screen is behind you. Beside the notes sits the deck again
 in an iframe under `?mirror=1` — a passenger that applies the real deck's
 snapshots and drives nothing — laid out at the deck's window size and scaled
 down, so it shows the projector's layout rather than a reflowed thumbnail.
 State, not pixels: screen capture would prompt for permission on every open
 and can pick the wrong screen. `verify.mjs` checks the replica stands on the
-deck's section. The window opens at the full height of the screen, since
-the replica sits under the notes and a fixed height cut it off.
+deck's section.
+
+**The notes window is a whole screen, so it is laid out wide.** It was
+designed as a small window — narrow, the replica stacked under Back / Next,
+opened 1100 wide. In practice it is always the laptop's full display with the
+deck on the projector, and a narrow column down a wide screen wasted most of
+it and kept the replica small. So it opens at the screen's size, the header
+and clock run across the top, the notes take the left column and the replica
+the right — half the width, or less if half would be taller than the screen
+can show, since it must never need scrolling to see. It stays in view while
+long notes scroll. Below 900px wide it stacks as it used to. `verify.mjs`
+checks the replica sits beside the notes and whole on screen.
 
 Each of these is a decision, not a style choice, and each looks like
 something to simplify:
@@ -419,6 +430,36 @@ something to simplify:
   smooth scroll is also throttled in background windows.
 - **No focus, no pointer.** If the iframe took focus, arrow keys after a
   click would go to the mirror, which ignores them, and the deck would stall.
+
+**Text size is per window, and browser zoom cannot do it.** Found at the
+first real talk: projector and laptop at very different resolutions, and no
+zoom level that suited both. Chrome and Edge remember zoom per ORIGIN, and
+both windows are `localhost:4173`, so Ctrl +/- in one zooms the other. Serving
+the notes from a second origin would split the zoom and also split the
+`BroadcastChannel`, which is same-origin only. So each window scales its own
+root font size (`--text-scale`, read by one rule in `stage.css`) and
+everything in rem follows; pictures stay sized to the screen height, which
+is where they belong. Two sliders in the ☰ menu — slide text, notes text —
+and the notes one again in the notes window, so it can be set on the screen
+it changes.
+
+- **The deck holds both values**, in its URL as `?scale=` and `?notesScale=`,
+  because the notes window is opened from that URL. The notes size travels
+  as its own `notesScale` message, not in the snapshot, and is **never
+  echoed**: a relay that bounced a drag back would arrive a step behind and
+  snap the thumb under your hand.
+- **The replica takes the deck's size from the snapshot.** It is the deck,
+  so it must wrap its lines where the projector does.
+- **A size control is never sized in the unit it sets.** The first version
+  put the notes slider in the footer, in rem: dragging it grew everything
+  above it and pushed the thumb out from under the pointer. So the notes
+  slider is a px bar fixed to the top edge, above the clock, and the deck's
+  frame — chips and ☰ menu — is px throughout, the same size at every text
+  size. `verify.mjs` asserts both sliders stand in the same place after the
+  scale they set has changed, and the notes one after a scroll too.
+- **A focused slider in the notes window does not eat the clicker.** Its key
+  listener relays and prevents the default whatever has focus — the same
+  guarantee the replica's `tabIndex={-1}` exists for.
 
 Known limits: it shows the deck, not a demo running in another app. Timed
 animations (the chat replay) start in step and then run on their own. `C`

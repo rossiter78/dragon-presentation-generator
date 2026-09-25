@@ -209,6 +209,19 @@ const mirror = notes.frameLocator('.notes__mirror iframe')
 const mirrorTitle = (
   await mirror.locator('section[data-active]').getAttribute('aria-label')
 )?.trim()
+/* The notes window is a whole screen on the night, so it is laid out wide:
+   the replica BESIDE the notes, not under them, and whole on screen without
+   scrolling — it is the thing you glance at with your back to the room. */
+const notesLayout = await notes.evaluate(() => {
+  const main = document.querySelector('.notes__main').getBoundingClientRect()
+  const box = document.querySelector('.notes__mirrorBox').getBoundingClientRect()
+  return {
+    beside: box.left >= main.right,
+    onScreen: box.top >= 0 && box.bottom <= window.innerHeight,
+    width: Math.round(box.width),
+    window: window.innerWidth,
+  }
+})
 await notes.locator('.notes__mirror').scrollIntoViewIfNeeded()
 await notes.screenshot({ path: `${OUT}/94-presenter-mirror.png` })
 
@@ -234,6 +247,73 @@ for (let i = 0; demoSection && i < deck.length && notesTitle !== demoSection.tit
 }
 const demoBanner = demoSection ? await notes.locator('.notes__demo').count() : 0
 if (demoSection) await notes.screenshot({ path: `${OUT}/93-presenter-demo.png` })
+
+/* --- text size, per window ---------------------------------------------
+   Browser zoom is per origin, so it cannot size the projector and the
+   laptop apart; these sliders can. Asserted on the COMPUTED root font size
+   in each document — the thing rem-sized text actually follows — and in
+   both directions for the notes size, since it can be set from either
+   window and each has to hear the other. */
+const rootPx = (target) =>
+  target.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize))
+const mirrorFrame = notes.frames().find((f) => f.url().includes('mirror=1'))
+const near = (a, b) => Math.abs(a - b) < 0.05
+/* Where a slider sits on screen. A slider that moves when its own value
+   changes slides out from under the pointer mid-drag — so each one must be
+   standing exactly where it was after the scale it sets has changed. */
+const at = async (target, sel) =>
+  target.evaluate((s) => {
+    const r = document.querySelector(s).getBoundingClientRect()
+    return [r.x, r.y, r.width].map((n) => Math.round(n)).join(',')
+  }, sel)
+
+await page.bringToFront()
+const basePx = await rootPx(page)
+const notesBasePx = await rootPx(notes)
+const notesSliderAt = await at(notes, '#notes-scale')
+await page.locator('.chip--ghost').click() // the hamburger
+const deckSliderAt = await at(page, '#deck-scale')
+await page.locator('#deck-scale').fill('130')
+await page.waitForTimeout(400)
+const deckScaled = await rootPx(page)
+const deckSliderAfter = await at(page, '#deck-scale')
+const mirrorScaled = mirrorFrame ? await rootPx(mirrorFrame) : NaN
+const notesUntouched = await rootPx(notes)
+
+await page.locator('#notes-scale').fill('120')
+await page.waitForTimeout(400)
+const notesFromMenu = await rootPx(notes)
+await page.screenshot({ path: `${OUT}/95-menu-text-size.png` })
+
+await notes.bringToFront()
+await notes.locator('#notes-scale').fill('90')
+await notes.waitForTimeout(400)
+const notesFromOwn = await rootPx(notes)
+const notesSliderAfter = await at(notes, '#notes-scale')
+
+// And scrolled to the bottom, at the largest size so there is a page to
+// scroll — the bar is pinned so reaching the replica does not take it away.
+await notes.locator('#notes-scale').fill('150')
+await notes.waitForTimeout(300)
+const notesScrolled = await notes.evaluate(() => {
+  window.scrollTo(0, document.documentElement.scrollHeight)
+  return window.scrollY
+})
+await notes.waitForTimeout(200)
+const notesSliderScrolled = await at(notes, '#notes-scale')
+await notes.evaluate(() => window.scrollTo(0, 0))
+await notes.locator('#notes-scale').fill('90')
+await notes.waitForTimeout(300)
+const menuHeard = await page.locator('#notes-scale').inputValue()
+const deckStill = await rootPx(page)
+await notes.screenshot({ path: `${OUT}/96-notes-text-size.png` })
+
+// Both survive a reload, from the deck's URL.
+await page.bringToFront()
+await page.reload({ waitUntil: 'networkidle' })
+await page.waitForTimeout(400)
+const deckReloaded = await rootPx(page)
+const reloadedParams = new URL(page.url()).searchParams
 
 /* --- high contrast ------------------------------------------------------ */
 
@@ -283,6 +363,10 @@ const checks = [
     `the replica in the notes window follows the deck (${mirrorTitle})`,
     mirrorTitle === titleAfter,
   ],
+  [
+    `the replica sits beside the notes, whole on screen (${notesLayout.width}px wide in ${notesLayout.window}px)`,
+    notesLayout.beside && notesLayout.onScreen,
+  ],
   ...(demoSection
     ? [
         [
@@ -292,6 +376,44 @@ const checks = [
         ['the demo banner reaches the presenter window', demoBanner === 1],
       ]
     : [['no demo slide in this deck — demo banner checks skipped', true]]),
+  [
+    `slide text size scales the deck (${basePx}px → ${deckScaled}px at 130%)`,
+    near(deckScaled, basePx * 1.3),
+  ],
+  [
+    `the replica takes the deck's text size (${mirrorScaled}px)`,
+    near(mirrorScaled, basePx * 1.3),
+  ],
+  [
+    `slide text size leaves the notes window alone (${notesUntouched}px)`,
+    near(notesUntouched, notesBasePx),
+  ],
+  [
+    `notes text size set from the deck's menu reaches the notes window (${notesFromMenu}px at 120%)`,
+    near(notesFromMenu, notesBasePx * 1.2),
+  ],
+  [
+    `notes text size set in the notes window applies there and reaches the menu (${notesFromOwn}px, menu ${menuHeard}%)`,
+    near(notesFromOwn, notesBasePx * 0.9) && menuHeard === '90' && near(deckStill, basePx * 1.3),
+  ],
+  [
+    `the slide size slider holds still while the deck rescales (${deckSliderAt} → ${deckSliderAfter})`,
+    deckSliderAt === deckSliderAfter,
+  ],
+  [
+    `the notes size slider holds still while the notes rescale (${notesSliderAt} → ${notesSliderAfter})`,
+    notesSliderAt === notesSliderAfter,
+  ],
+  notesScrolled > 0
+    ? [
+        `the notes size slider stays pinned when the window scrolls ${notesScrolled}px (${notesSliderScrolled})`,
+        notesSliderScrolled === notesSliderAt,
+      ]
+    : ['notes window too short to scroll at 150% — pinned-bar check skipped', true],
+  [
+    `both text sizes survive a reload (scale=${reloadedParams.get('scale')}, notesScale=${reloadedParams.get('notesScale')})`,
+    near(deckReloaded, basePx * 1.3) && reloadedParams.get('notesScale') === '90',
+  ],
 ]
 for (const [label, ok] of checks) console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}`)
 console.log(errors.length ? 'CONSOLE ERRORS:\n' + errors.join('\n') : 'no console errors')

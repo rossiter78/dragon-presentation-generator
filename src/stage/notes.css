@@ -1,13 +1,115 @@
 /* Presenter window. Plain, dense, high contrast — this is a working surface,
    not a designed one. It is on your laptop, not the projector. */
 
+/* A whole screen, not a small window: on the night this is your laptop's
+   display, full size, with the projector on the other one. So it is laid
+   out wide — where you are and the clock across the top, then what to say
+   on the left and what the room is seeing on the right.
+
+   The replica's column takes half the window, or less when half would be
+   taller than the screen can show under the header — it should never need
+   scrolling to see. --mirror-aspect is the deck's shape, set inline. */
 .notes {
+  --bar-h: 38px;
+  --side-w: min(
+    50vw,
+    calc((100dvh - var(--bar-h) - 12rem) * var(--mirror-aspect, 1.7778))
+  );
   min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--side-w);
+  grid-template-areas:
+    'top top'
+    'main side';
+  align-content: start;
+  align-items: start;
+  gap: 1.1rem 2rem;
+  /* The text-size bar is fixed over the top edge; reserve its height. */
+  padding: calc(var(--bar-h) + 1.4rem) 1.6rem 2rem;
+  background: #0c1116;
+}
+.notes__top {
+  grid-area: top;
+  display: grid;
+  gap: 1.1rem;
+}
+.notes__main {
+  grid-area: main;
   display: grid;
   align-content: start;
   gap: 1.1rem;
-  padding: 1.4rem 1.6rem 2rem;
-  background: #0c1116;
+}
+/* Stays in view when long notes scroll the left column. */
+.notes__side {
+  grid-area: side;
+  position: sticky;
+  top: calc(var(--bar-h) + 1rem);
+}
+
+/* A narrow window — one dragged beside something else — stacks as it used
+   to, replica last. */
+@media (max-width: 900px) {
+  .notes {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'top' 'main' 'side';
+  }
+  .notes__side {
+    position: static;
+  }
+}
+
+/* The notes text-size bar, above the clock.
+   Everything else in this window is rem and follows the slider; this is px
+   and does not, because a control sized in the unit it changes moves under
+   the pointer while you drag it. FIXED, not sticky: sticky can only travel
+   as far as its container, and was seen scrolled off the top while the page
+   was briefly taller than .notes during load. Fixed depends on no layout,
+   and being out of the grid it costs no row gap. The pieces right of the
+   track have fixed widths, so the track never shifts either. */
+.notes__bar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 2;
+  box-sizing: border-box;
+  height: var(--bar-h);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  background: inherit;
+  border-bottom: 1px solid var(--line);
+}
+.notes__bar label {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.notes__bar .menu__range {
+  width: 160px;
+  margin: 0;
+}
+.notes__bar output {
+  width: 40px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.notes__barReset {
+  all: unset;
+  width: 36px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--accent-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.notes__barReset[data-hidden] {
+  visibility: hidden;
 }
 
 .notes__head {
@@ -127,7 +229,7 @@
   border-top: 1px solid var(--line);
   padding-top: 1rem;
 }
-.notes__foot button {
+.notes__foot > button {
   all: unset;
   cursor: pointer;
   font-family: var(--font-display);
@@ -138,7 +240,7 @@
   border-radius: 999px;
   color: var(--text-secondary);
 }
-.notes__foot button:hover {
+.notes__foot > button:hover {
   color: var(--text);
 }
 .notes__primary {
@@ -151,7 +253,6 @@
   color: var(--text-muted);
   margin-left: auto;
 }
-
 /* Key map for the active section, so the number-key bindings never have to
    be memorised. The currently expanded one is highlighted. */
 .notes__keys ul {
@@ -198,12 +299,16 @@
   color: var(--text);
 }
 
-/* The replica of the projector, under the Back / Next buttons. Small on
-   purpose: it answers "has it built yet, is the detail open", not "read the
-   slide". The iframe is laid out at the deck's full size and scaled into
-   this box from its top-left corner — see StageMirror in PresenterNotes. */
+/* The replica of the projector, filling the right-hand column. The iframe
+   is laid out at the deck's full size and scaled into this box from its
+   top-left corner — see StageMirror in PresenterNotes. */
 .notes__mirror {
-  width: min(100%, 30rem);
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .notes__mirror {
+    width: min(100%, 30rem);
+  }
 }
 .notes__mirrorBox {
   position: relative;
